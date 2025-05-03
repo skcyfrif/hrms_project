@@ -57,7 +57,6 @@
                                         <th>date</th>
                                         <th>check_in_time</th>
                                         <th>status</th>
-                                        {{-- <th>email</th> --}}
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -70,7 +69,6 @@
                                             <td>{{ \Carbon\Carbon::parse($item->date)->format('d/M/Y') }}</td>
                                             <td>{{ \Carbon\Carbon::parse($item->check_in_time)->format('h:i A') ?? '---' }}</td>
                                             <td>{{ $item->status }}</td>
-                                            {{-- <td>{{$item->email}}</td> --}}
                                             <td>
                                                 {{-- <a href="{{route('edit.employeeattendance' , $item->id)}}" class="btn btn-inverse-warning"> Edit</a> --}}
                                                 <a href="{{ route('delete.rmattendance', $item->id) }}"
