@@ -38,7 +38,7 @@ class Employeeattendance extends Model
    // attendance status in hrm
     public function employeeattendancestatusinhrm()
 {
-    return $this->belongsTo(Subu::class, 'employee_id', 'id');
+    return $this->belongsTo(Subu::class, 'employee_id');
 }
 
 

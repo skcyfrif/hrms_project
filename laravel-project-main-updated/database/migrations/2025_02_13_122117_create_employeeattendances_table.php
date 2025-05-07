@@ -21,8 +21,10 @@ return new class extends Migration
             // $table->integer('work_hours')->nullable();
             $table->string('status');
             $table->string('remarks')->nullable();
-            $table->unsignedBigInteger('approve_by_manager')->nullable();  // Corrected data type
+            $table->unsignedBigInteger('approve_by_manager')->nullable();
             $table->string('manager_approval_status')->nullable();
+            $table->unsignedBigInteger('approve_by_rm')->nullable();
+            $table->string('rm_approval_status')->nullable();
             $table->timestamps();
         });
     }

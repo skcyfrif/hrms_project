@@ -194,61 +194,63 @@ class HrController extends Controller
         $request->validate([
             // 'employee_id' => 'required',
             'name' => 'required',
-            // 'photo' => 'required',
             'photo' => 'image|mimes:jpeg,png,jpg,gif|max:2048', // Validate the image
-            'email' => 'required',
-            'phone_number' => 'required',
-            'dob' => 'required',
-            'gender' => 'required',
+            'email' => 'required|email|max:255',
+            'phone_number' => 'required|digits:10',
+            'dob' => 'required|date|before:today',
+            'gender' => 'required|in:male,female,other',
+
 
              // Contact Information
-            // 'permanent_address' => 'required',
-            // 'current_address' => 'required',
-            'permanent_address_line1' => 'required',
-            'permanent_address_line2' => 'required',
-            'permanent_city' => 'required',
-            'permanent_district' => 'required',
-            'permanent_state' => 'required',
-            'permanent_pin' => 'required',
-            'current_address_line1' => 'required',
-            'current_address_line2' => 'nullable',
-            'current_city' => 'required',
-            'current_district' => 'required',
-            'current_state' => 'required',
-            'current_pin' => 'required',
-            'emergency_contact' => 'required',
+
+            'permanent_address_line1' => 'required|string|max:255',
+            'permanent_address_line2' => 'required|string|max:255',
+            'permanent_city' => 'required|string|max:100',
+            'permanent_district' => 'required|string|max:100',
+            'permanent_state' => 'required|string|max:100',
+            'permanent_pin' => 'required|digits:6',
+
+            'current_address_line1' => 'required|string|max:255',
+            'current_address_line2' => 'nullable|string|max:255',
+            'current_city' => 'required|string|max:100',
+            'current_district' => 'required|string|max:100',
+            'current_state' => 'required|string|max:100',
+            'current_pin' => 'required|digits:6',
+
+            'emergency_contact' => 'required|digits:10',
+
 
                // Employment Details
-            'designation' => 'required',
-            'department' => 'required',
-            'work_location' => 'required',
+            'designation' => 'required|string|max:100',
+            'department' => 'required|string|max:100',
+            'work_location' => 'required|string|max:100',
             'doj' => 'required',
             'employment_type' => 'required',
             'created_by' => 'required',
 
             // Bank Details
-            'account_number' => 'required',
-            'ifsc_code' => 'required',
-            'bank_name' => 'required',
-            'branch_name' => 'required',
+            'account_number' => 'required|numeric|digits_between:9,18',
+            'ifsc_code'      => 'required|regex:/^[A-Z]{4}0[A-Z0-9]{6}$/i',
+            'bank_name'      => 'required|string|max:100',
+            'branch_name'    => 'required|string|max:100',
 
 
             // Compensation Details
             'types' => 'required',
             'pay_cycle' => 'required',
-            'total_leave_allowed' => 'required',
-            'basic_salary' => 'required',
-            'house_rent_allowance' => 'required',
-            'conveyance_allowance' => 'required',
-            'lunch_allowance' => 'required',
-            'personal_pay' => 'required',
-            'medical_allowance' => 'required',
-            'other_allowance' => 'required',
-            'leave_travel_allowance' => 'required',
-            'total_ammount' => 'required',
-            'professional_tax' => 'required',
-            'esic' => 'required',
-            'net_salary_payable' => 'required',
+            'total_leave_allowed'       => 'required|numeric|min:0',
+            'basic_salary'              => 'required|numeric|min:0',
+            'house_rent_allowance'      => 'required|numeric|min:0',
+            'conveyance_allowance'      => 'required|numeric|min:0',
+            'lunch_allowance'           => 'required|numeric|min:0',
+            'personal_pay'              => 'required|numeric|min:0',
+            'medical_allowance'         => 'required|numeric|min:0',
+            'other_allowance'           => 'required|numeric|min:0',
+            'leave_travel_allowance'    => 'required|numeric|min:0',
+            'total_ammount'             => 'required|numeric|min:0',
+            'professional_tax'          => 'required|numeric|min:0',
+            'esic'                      => 'required|numeric|min:0',
+            'net_salary_payable'        => 'required|numeric|min:0',
              // System Access
             'user_role' => 'required',
             'username' => 'required',
@@ -305,7 +307,7 @@ class HrController extends Controller
             'employee_id' => $generatedEmployeeId,
             'user_id' => $user->id,
             'name' => $request->name,
-            // 'photo' => $request->photo,
+
             'photo' => $photoPath,
             'email' => $request->email,
             'phone_number' => $request->phone_number,
@@ -313,9 +315,7 @@ class HrController extends Controller
             'gender' => $request->gender,
 
 
-            // Contact Information
-            // 'permanent_address' => $request->permanent_address,
-            // 'current_address' => $request->current_address,
+
             'permanent_address_line1' => $request->permanent_address_line1,
             'permanent_address_line2' => $request->permanent_address_line2,
             'permanent_city' => $request->permanent_city,
@@ -881,22 +881,35 @@ public function DownloadPayslips($id)
     }
 
 ///////////////////////attendances of hr head///////////////////
-public function HrHeadAttendanceList()
+public function HrHeadAttendanceList(Request $request)
     {
-        // $atens = Employeeattendance::latest()->get();
         $user = auth()->user();
-        $employyye = Subu::where('user_id', $user->id)->first();
-        $atens = Employeeattendance::where('employee_id', $employyye->id)->latest()->get();
-        return view('hr_head.hrhead.hr_head_attendace.hr_head_attendance_list' , compact('atens', 'employyye'));
+        $employee = Subu::where('user_id', $user->id)->first();
+
+        $query = Employeeattendance::where('employee_id', $employee->id);
+
+        // Filter by month and year
+        if ($request->filled('month') && $request->filled('year')) {
+            $query->whereMonth('date', $request->month)
+                  ->whereYear('date', $request->year);
+        }
+
+        $atens = $query->latest()->get();
+
+        $currentYear = now()->year;
+        $years = range(2019, $currentYear); // for year dropdown
+        return view('hr_head.hrhead.hr_head_attendace.hr_head_attendance_list' , compact('atens', 'employee', 'years', 'currentYear'));
     }
     public function AddHrHeadAttendance()
     {
         $user = auth()->user();
         $employee = Subu::where('user_id', $user->id)->first();
-        // return view('employee.employeeattendancerecord.add_employee_attendance_list');
     return view('hr_head.hrhead.hr_head_attendace.add_hr_head_attendance_list', compact('user', 'employee'));
 
-    } //End method
+    }
+
+
+
 
 
     public function StoreHrHeadAttendance(Request $request)
@@ -908,7 +921,7 @@ public function HrHeadAttendanceList()
         'date' => 'required',
         'check_in_time' => 'required',
         'status' => 'required',
-        'remarks' => 'required'
+        // 'remarks' => 'required'
     ]);
 
     $existingAttendance = Employeeattendance::where('employee_id', $request->employee_id)
@@ -983,9 +996,13 @@ public function HrHeadAttendanceList()
 // ======================================================================================
 
 public function CheckLeaveofHrHead()
-    {
-    return view('hr_head.hrhead.leave.leavebalance.check_leave_balance');
-    }
+{
+    $user = auth()->user(); // Assuming HR Head is logged in
+    return view('hr_head.hrhead.leave.leavebalance.check_leave_balance', [
+        'hrHeadName' => $user->name,
+    ]);
+}
+
 
 
 
@@ -1103,8 +1120,12 @@ public function HrHeadLeaveStatus()
     $employye = Subu::where('user_id', $user->id)->first();
     $approvals = Leave::with('leavestatusofhrhead')->where('employee_id', $employye->id)->latest()->get();
 
-    return view('hr_head.hrhead.leave.leave_status.hrhead_leave_status', compact('approvals'));
+    return view('hr_head.hrhead.leave.leave_status.hrhead_leave_status', [
+        'approvals' => $approvals,
+        'hrHeadName' => $employye->name, // or $employye->full_name if that's the field
+    ]);
 }
+
 
 
 
@@ -1145,7 +1166,7 @@ public function HrHeadLeaveStatus()
         // 'receipt_attached' => 'required',
         'admin_approval' => 'required',
         'approval_date' => 'nullable|date',
-        'reimbursed' => 'required',
+        'reimbursed' => 'required|numeric',
         // 'processed_date' => 'nullable|date',
     ], [
         'expense_date.before_or_equal' => 'The expense date cannot be after the claim date.',
@@ -1182,7 +1203,7 @@ public function UpdateClaimFormofHrHead(Request $request, $id)
         // 'receipt_attached' => 'required',
         'admin_approval' => 'required',
         'approval_date' => 'nullable|date',
-        'reimbursed' => 'required',
+        'reimbursed' => 'required|numeric',
         // 'processed_date' => 'nullable|date',
     ], [
         'expense_date.before_or_equal' => 'The expense date cannot be after the claim date.',
@@ -1221,7 +1242,7 @@ public function UpdateClaimFormofHrHead(Request $request, $id)
                     ->latest()
                     ->get();
 
-    return view('hr_head.hrhead.claim.claim_status.track_claim_approval_status', compact('approvals'));
+    return view('hr_head.hrhead.claim.claim_status.track_claim_approval_status', compact('approvals', 'employye'));
 
 }
 

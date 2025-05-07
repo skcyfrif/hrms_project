@@ -78,7 +78,7 @@
                                     <th>PL</th>
                                     <th>SL</th>
                                     <th>Salary For The Month</th>
-                                    <th>Action</th>
+                                    {{-- <th>Action</th> --}}
                                 </tr>
                             </thead>
                             <tbody>
@@ -96,9 +96,9 @@
                                         <td>{{ $payroll->paid_leave_days }}</td>
                                         <td>{{ $payroll->sick_leave_days }}</td>
                                         <td>{{ $payroll->gross_salary }}</td>
-                                        <td>
+                                        {{-- <td>
                                             <a href="#" class="btn btn-inverse-warning">Generate Payslip</a>
-                                        </td>
+                                        </td> --}}
                                     </tr>
                                 @endforeach
                             </tbody>

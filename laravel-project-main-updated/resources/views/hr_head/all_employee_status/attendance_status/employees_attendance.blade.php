@@ -6,7 +6,7 @@
             <div class="col-md-12 grid-margin stretch-card">
                 <div class="card">
                     <div class="card-body">
-                        <h6 class="card-title">Attendance Status of Report Managers</h6>
+                        <h6 class="card-title">Attendance Status of All Employees</h6>
                         <div class="table-responsive">
                             <!-- Filter Form -->
                             <form method="GET" action="{{ route('hrhead.employee.attendances') }}" class="mb-4">

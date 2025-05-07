@@ -5,6 +5,9 @@
     <div class="page-content">
         <div class="row profile-body">
             <div class="col-md-12 col-xl-12 middle-wrapper">
+                <button onclick="window.history.back();" class="btn btn-secondary">
+                    Back
+                </button>
                 <div class="row">
                     <div class="card shadow-sm border-0">
                         <div class="card-body p-5">

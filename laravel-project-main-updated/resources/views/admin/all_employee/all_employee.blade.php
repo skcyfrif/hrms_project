@@ -10,9 +10,9 @@
                 </button>
             </li>
 
-            <li class="breadcrumb-item active" aria-current="page">
+            {{-- <li class="breadcrumb-item active" aria-current="page">
                 Employees Created by {{ $hrManager->name }}
-            </li>
+            </li> --}}
         </ol>
     </nav>
 

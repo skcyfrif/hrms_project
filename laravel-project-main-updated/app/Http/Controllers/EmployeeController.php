@@ -37,7 +37,7 @@ class EmployeeController extends Controller
         $employee = $user->subu;
         $employyeData = Subu::where('user_id', $user->id)->first();
         // dd($employyeData->id);
-        $leaveBalanceData = LeaveBalance::where('employee_id', $employyeData->id)->first();
+        $leaveBalanceData = Leavebalance::where('employee_id', $employyeData->id)->first();
 
         $currentMonth = now()->month;
         $currentYear = now()->year;
@@ -374,7 +374,7 @@ class EmployeeController extends Controller
 
         // Handle permanent employee
         if ($employee->employment_type === 'permanent') {
-            $leaveBalance = LeaveBalance::where('employee_id', $employee->id)
+            $leaveBalance = Leavebalance::where('employee_id', $employee->id)
                             ->where('year', now()->year)
                             ->first();
 
@@ -390,13 +390,7 @@ class EmployeeController extends Controller
                     $remainingDays -= $plToUse;
                 }
 
-                // Uncomment below if you want to allow SL before LOP too
-                // if ($remainingDays > 0 && $leaveBalance->sl_balance > 0) {
-                //     $slToUse = min($remainingDays, $leaveBalance->sl_balance);
-                //     $leaveBalance->sl_balance -= $slToUse;
-                //     $slDaysDeducted = $slToUse;
-                //     $remainingDays -= $slToUse;
-                // }
+
 
                 if ($remainingDays > 0) {
                     $leaveBalance->lop_days += $remainingDays;
@@ -439,12 +433,12 @@ class EmployeeController extends Controller
 
         // Handle non-permanent employee
         else {
-            $leaveBalance = LeaveBalance::where('employee_id', $employee->id)
+            $leaveBalance = Leavebalance::where('employee_id', $employee->id)
             ->where('year', now()->year)
             ->first();
 
                 if (!$leaveBalance) {
-                $leaveBalance = LeaveBalance::create([
+                $leaveBalance = Leavebalance::create([
                 'employee_id' => $employee->id,
                 'year' => now()->year,
                 'annual_leave_entitlement' => 0,
@@ -552,13 +546,11 @@ public function DeleteLeave($id)
 public function CheckLeave()
 {
     $user = Auth::user();
-    // dd($user->toArray());
 
-    // Fetch the employee details along with leave balances and payroll data
     $employee = Subu::with(['leaveBalances', 'leave'])->where('user_id', $user->id)->first();
 // dd($employee->toArray());
 
-    // dd($employee->toArray());
+
     if (!$employee) {
         return redirect()->back()->with('error', 'Employee not found!');
     }
@@ -618,7 +610,10 @@ public function CheckLeave()
     $employye = Subu::where('user_id', $user->id)->first();
     $approvals = Leave::with('leavestatusofemployee')->where('employee_id', $employye->id)->latest()->get();
 
-    return view('employee.leavemanagement.leavestatus.leave_status', compact('approvals'));
+    return view('employee.leavemanagement.leavestatus.leave_status', [
+        'approvals' => $approvals,
+        'employeeName' => $employye->name,
+    ]);
     }
 
 // ======================================================================================
@@ -634,7 +629,7 @@ public function trackClaimStatus()
                     ->latest()
                     ->get();
 
-    return view('employee.claim_form.claim_status.claim_status', compact('approvals'));
+    return view('employee.claim_form.claim_status.claim_status', compact('approvals', 'employye'));
 }
 
 
@@ -852,7 +847,7 @@ public function EmpPayslipView(Request $request)
         // 'receipt_attached' => 'required',
         'manager_approval' => 'required',
         'approval_date' => 'nullable|date',
-        'reimbursed' => 'required',
+        'reimbursed' => 'required|numeric',
         // 'processed_date' => 'nullable|date',
     ], [
         'expense_date.before_or_equal' => 'The expense date cannot be after the claim date.',
@@ -889,7 +884,7 @@ public function UpdateClaim(Request $request, $id)
         // 'receipt_attached' => 'required',
         'manager_approval' => 'required',
         'approval_date' => 'nullable|date',
-        'reimbursed' => 'required',
+        'reimbursed' => 'required|numeric',
         // 'processed_date' => 'nullable|date',
     ], [
         'expense_date.before_or_equal' => 'The expense date cannot be after the claim date.',
@@ -922,7 +917,7 @@ public function UpdateClaim(Request $request, $id)
         $employeeId = $request->employee_id;
         $daysRequested = $request->days;
 
-        $leaveBalance = LeaveBalance::where('employee_id', $employeeId)->where('year', now()->year)->first();
+        $leaveBalance = Leavebalance::where('employee_id', $employeeId)->where('year', now()->year)->first();
 
         if (!$leaveBalance) {
             return response()->json([

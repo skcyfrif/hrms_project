@@ -88,9 +88,9 @@
                                 </li>
                             </ul>
                             <ul class="nav sub-menu">
+                               
                                 <li class="nav-item">
-                                    <a href="{{route('all.attendanceinrm')}}" class="nav-link">Attendance Status</a>
-                                    {{-- <a href="#" class="nav-link">Attendance Status</a> --}}
+                                    <a href="{{route('rm.employee.attendance')}}" class="nav-link">Attendance Status</a>
                                 </li>
                             </ul>
                             <ul class="nav sub-menu">

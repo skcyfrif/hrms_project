@@ -3,67 +3,25 @@
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 
-<!-- Print-specific styles -->
-{{-- <style>
-    @media print {
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: white;
-        }
-        .page-content {
-            width: 100%;
-            margin: 0;
-            padding: 0;
-        }
-        .card-body {
-            padding: 5px;
-        }
-        .card-title {
-            text-align: center;
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-        }
-        .form-control {
-            border: 1px solid #ccc;
-            margin-bottom: 10px;
-        }
-        .form-step {
-            padding-bottom: 20px;
-        }
-        h3 {
-            font-size: 18px;
-            color: red;
-            margin-top: 1cm;
-            margin-bottom: 0.5cm;
-        }
-        label {
-            font-weight: bold;
-        }
-        .d-flex {
-            display: none; /* Hide buttons for print */
-        }
-        .btn {
-            display: none; /* Hide print button */
-        }
 
-        .navbar {
-            display: none;
-        }
-
-
-        /* Hide the System Access section during printing */
-        #system-access {
-            display: none;
-        }
-    }
-</style> --}}
 
 <div class="page-content">
     <div class="row profile-body">
         <!-- Middle Wrapper Start -->
         <div class="col-md-12 col-xl-12 middle-wrapper">
+            <nav class="page-breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <button onclick="window.history.back();" class="btn btn-secondary">
+                            Back
+                        </button>
+                    </li>
+
+                    {{-- <li class="breadcrumb-item active" aria-current="page">
+                        Employees Created by {{ $hrManager->name }}
+                    </li> --}}
+                </ol>
+            </nav>
             <div class="row">
                 <div class="card shadow-sm border-0">
                     <div class="card-body p-5">

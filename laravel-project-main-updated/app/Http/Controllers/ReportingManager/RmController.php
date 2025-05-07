@@ -43,7 +43,7 @@ class RmController extends Controller
     $employee = $user->subu;
     $employyeData = Subu::where('user_id', $user->id)->first();
     // dd($employyeData->id);
-    $leaveBalanceData = LeaveBalance::where('employee_id', $employyeData->id)->first();
+    $leaveBalanceData = Leavebalance::where('employee_id', $employyeData->id)->first();
     $attendance = $employee->attendances()->latest()->first();
 
     $teamMembers = \App\Models\Subu::where('assigned_to', $employee->id)->get();
@@ -184,7 +184,7 @@ class RmController extends Controller
         $currentYear = now()->year;
         $years = range(2019, $currentYear); // for year dropdown
 
-        return view('report_manager.attendance.employee_attendance_list', compact('atens', 'employee', 'years', 'currentYear'));
+        return view('report_manager.attendance.rm_attendance_list', compact('atens', 'employee', 'years', 'currentYear'));
     }
 
 
@@ -193,7 +193,7 @@ class RmController extends Controller
         $user = auth()->user();
         $employee = Subu::where('user_id', $user->id)->first();
         // return view('employee.employeeattendancerecord.add_employee_attendance_list');
-    return view('report_manager.attendance.add_employee_attendance_list', compact('user', 'employee'));
+    return view('report_manager.attendance.add_rm_attendance_list', compact('user', 'employee'));
 
     } //End method
 
@@ -246,7 +246,7 @@ class RmController extends Controller
     public function EditRmAttendance($id)
     {
     $aten = Employeeattendance::findOrFail($id);
-    return view('report_manager.attendance.edit_employee_attendance_list', compact('aten'));
+    return view('report_manager.attendance.edit_rm_attendance_list', compact('aten'));
     }
 
     public function UpdateRmAttendance(Request $request, $id)
@@ -312,7 +312,7 @@ public function StoreRmLeave(Request $request)
     $leave_type = $request->reason;
     $total_days = $request->total_days;
 
-    $leaveBalance = LeaveBalance::firstOrCreate(
+    $leaveBalance = Leavebalance::firstOrCreate(
         ['employee_id' => $request->employee_id, 'year' => now()->year],
         ['annual_leave_entitlement' => ($employee->employment_type == 'permanent' ? 18 : 0), 'pl_balance' => 18, 'sl_balance' => 3, 'lop_days' => 0]
     );
@@ -451,7 +451,7 @@ public function DeleteRmLeave($id)
         // 'receipt_attached' => 'required',
         'manager_approval' => 'required',
         'approval_date' => 'nullable|date',
-        'reimbursed' => 'required',
+        'reimbursed' => 'required|numeric',
         // 'processed_date' => 'nullable|date',
     ], [
         'expense_date.before_or_equal' => 'The expense date cannot be after the claim date.',
@@ -488,7 +488,7 @@ public function UpdateRmClaim(Request $request, $id)
         // 'receipt_attached' => 'required',
         'manager_approval' => 'required',
         'approval_date' => 'nullable|date',
-        'reimbursed' => 'required',
+        'reimbursed' => 'required|numeric',
         // 'processed_date' => 'nullable|date',
     ], [
         'expense_date.before_or_equal' => 'The expense date cannot be after the claim date.',
@@ -705,29 +705,47 @@ public function rejectLeaveSubmitbyRm(Request $request)
 
 ////////////////////////////////////////////////////attendance status approval by reporting manager////////////////////////////////////////////////////
 
-public function AttendanceStatusinRm(Request $request)
+
+public function viewEmployeeAttendancesStatuses(Request $request)
 {
-    $managerId = auth()->user()->id;
+    $month = $request->input('month');
+    $currentYear = now()->year;
 
-    // Get current Subu (manager's employee profile)
-    $employeedata = Subu::where('user_id', $managerId)->first();
-    $employeeId = $employeedata->id;
+    $loggedInUserId = auth()->id();
 
-    // Start query: only fetch attendance where employees are assigned to current report manager
-    $attendQuery = Employeeattendance::whereHas('employeeattendancestatusinhrm', function ($query) use ($employeeId) {
-        $query->where('assigned_to', $employeeId);
-    });
+    // Get the Subu record for the logged-in report manager (based on user_id)
+    $reportManager = Subu::where('user_id', $loggedInUserId)
+                         ->where('user_role', 'reportmanager')
+                         ->first();
 
-    // Apply date filter if present
-    if ($request->has('date') && $request->date) {
-        $attendQuery->whereDate('date', $request->date);
+    if (!$reportManager) {
+        return back()->with('error', 'Report Manager not found.');
     }
 
-    // Execute query
-    $attend = $attendQuery->latest()->get();
+    // Now fetch employees assigned to this report manager
+    $rmanagers = Subu::where('user_role', 'user')
+                     ->where('assigned_to', $reportManager->id)
+                     ->get();
 
-    return view('report_manager.employee_management.attendance_status.attendance_status', compact('attend'));
+    // Load filtered attendances for each employee
+    foreach ($rmanagers as $manager) {
+        $attendanceQuery = $manager->attendance();
+
+        if ($month) {
+            $attendanceQuery->whereMonth('date', $month)
+                            ->whereYear('date', $currentYear);
+        } else {
+            $attendanceQuery->whereYear('date', $currentYear);
+        }
+
+        // Attach attendance records to the user model
+        $manager->filteredAttendances = $attendanceQuery->orderBy('date')->get();
+    }
+
+    return view('report_manager.employee_management.attendance_status.employee_attendance_status', compact('rmanagers', 'month'));
 }
+
+
 
 
 
@@ -735,8 +753,8 @@ public function AttendanceStatusinRm(Request $request)
     public function approveAttendanceinRm($id)
     {
         $attendance = Employeeattendance::findOrFail($id);
-        $attendance->manager_approval_status = 'Present';
-        $attendance->approve_by_manager = auth()->user()->id;
+        $attendance->rm_approval_status = 'Present';
+        $attendance->approve_by_rm = auth()->user()->id;
         $attendance->save();
 
         return redirect()->back()->with('success', 'Attendance marked as Present.');
@@ -745,8 +763,8 @@ public function AttendanceStatusinRm(Request $request)
     public function absentAttendanceinRm($id)
     {
         $attendance = Employeeattendance::findOrFail($id);
-        $attendance->manager_approval_status = 'Absent';
-        $attendance->approve_by_manager = auth()->user()->id;
+        $attendance->rm_approval_status = 'Absent';
+        $attendance->approve_by_rm = auth()->user()->id;
         $attendance->save();
 
         return redirect()->back()->with('success', 'Attendance marked as Absent.');
@@ -762,7 +780,11 @@ public function trackLeaveStatusofRm()
 $user = auth()->user();
 $employye = Subu::where('user_id', $user->id)->first();
 $approvals = Leave::with('leavestatusofrm')->where('employee_id', $employye->id)->latest()->get();
-return view('report_manager.leave_management.leave_status.leave_status', compact('approvals'));
+return view('report_manager.leave_management.leave_status.leave_status', [
+    'approvals' => $approvals,
+    'RmName' => $employye->name,
+]);
+;
 }
 
 // ======================================================================================
@@ -778,7 +800,7 @@ public function trackClaimStatusofRm()
                     ->latest()
                     ->get();
 
-    return view('report_manager.claim_form.claim_status.claim_status', compact('approvals'));
+    return view('report_manager.claim_form.claim_status.claim_status', compact('approvals', 'employye'));
 }
 
 
@@ -791,7 +813,11 @@ public function trackClaimStatusofRm()
 
 public function CheckLeaveofRm()
     {
-    return view('report_manager.leave_management.leavebalance.check_leave_balance');
+        $user = auth()->user(); // Assuming HR Head is logged in
+        return view('report_manager.leave_management.leavebalance.check_leave_balance', [
+                    'reportManagerName' => $user->name,
+                ]);
+
     }
 
 

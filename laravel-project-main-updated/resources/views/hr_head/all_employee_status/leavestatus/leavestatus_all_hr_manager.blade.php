@@ -6,7 +6,7 @@
             <div class="col-md-12 grid-margin stretch-card">
                 <div class="card">
                     <div class="card-body">
-                        <h6 class="card-title">All HR Managers</h6>
+                        <h6 class="card-title">Leave Status of All HR Managers</h6>
                         <div class="table-responsive">
                             <form method="GET" action="{{ route('hr_head.hr_managersleaves') }}" class="row mb-4">
                                 <div class="col-md-3">

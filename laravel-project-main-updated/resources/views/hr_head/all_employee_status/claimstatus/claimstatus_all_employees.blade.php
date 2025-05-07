@@ -1,13 +1,13 @@
 @extends('hr_head.hr_head_dashboard')
 @section('hr_head')
     <div class="page-content">
-        
+
 
         <div class="row">
             <div class="col-md-12 grid-margin stretch-card">
                 <div class="card">
                     <div class="card-body">
-                        <h6 class="card-title">All Employees</h6>
+                        <h6 class="card-title">Claim Status of All Employees</h6>
                         <div class="table-responsive">
                             <form method="GET" action="{{ route('hr_head.hrm.employee.claim') }}" class="row mb-4">
                                 <div class="col-md-3">

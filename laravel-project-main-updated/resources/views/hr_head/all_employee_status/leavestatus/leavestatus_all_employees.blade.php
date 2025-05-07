@@ -6,7 +6,7 @@
         <div class="col-md-12 grid-margin stretch-card">
             <div class="card">
                 <div class="card-body">
-                    <h6 class="card-title">Employees Leave Status</h6>
+                    <h6 class="card-title">Leave Status of All Employees</h6>
 
                     <form method="GET" action="{{ route('hrhead.hrm.employee.leave') }}" class="row mb-4">
                         <div class="col-md-3">
@@ -60,7 +60,8 @@
                                     <th>Email</th>
                                     <th>Leave From</th>
                                     <th>Leave To</th>
-                                    <th>Status</th>
+                                    <th>Rm Status</th>
+                                    <th>Manager Status</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -77,6 +78,19 @@
                                                 @if ($emp->leave->rm_status === 'rmapprove')
                                                     <span class="badge bg-success">Approved</span>
                                                 @elseif ($emp->leave->rm_status === 'rmreject')
+                                                    <span class="badge bg-danger">Rejected</span>
+                                                @else
+                                                    <span class="badge bg-warning text-dark">Pending</span>
+                                                @endif
+                                            @else
+                                                <span class="badge bg-info">No Leave Applied</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if ($emp->leave)
+                                                @if ($emp->leave->m_status === 'mapprove')
+                                                    <span class="badge bg-success">Approved</span>
+                                                @elseif ($emp->leave->m_status === 'mreject')
                                                     <span class="badge bg-danger">Rejected</span>
                                                 @else
                                                     <span class="badge bg-warning text-dark">Pending</span>

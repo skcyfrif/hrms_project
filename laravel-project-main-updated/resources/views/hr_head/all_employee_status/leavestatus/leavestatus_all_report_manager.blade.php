@@ -6,7 +6,7 @@
         <div class="col-md-12 grid-margin stretch-card">
             <div class="card">
                 <div class="card-body">
-                    <h6 class="card-title">Report Managers Leave Status</h6>
+                    <h6 class="card-title">Leave Status of All Report Managers</h6>
 
                     <form method="GET" action="{{ route('hrhead.hrm.rm.leave') }}" class="row mb-4">
                         <div class="col-md-3">
@@ -74,9 +74,9 @@
                                         <td>{{ $rm->leave?->leave_to ?? '- - -' }}</td>
                                         <td>
                                             @if ($rm->leave)
-                                                @if ($rm->leave->rm_status === 'rmapprove')
+                                                @if ($rm->leave->m_status === 'mapprove')
                                                     <span class="badge bg-success">Approved</span>
-                                                @elseif ($rm->leave->rm_status === 'rmreject')
+                                                @elseif ($rm->leave->m_status === 'mreject')
                                                     <span class="badge bg-danger">Rejected</span>
                                                 @else
                                                     <span class="badge bg-warning text-dark">Pending</span>

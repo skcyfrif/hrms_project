@@ -1,6 +1,9 @@
 @extends('hr_head.hr_head_dashboard')
 @section('hr_head')
 <div class="page-content">
+    <h6 class="text-center">Check Leave Balance of {{ $hrHeadName }}</h6>
+
+
 
                 <nav class="page-breadcrumb">
                     <ol class="breadcrumb">
@@ -29,29 +32,7 @@
 
                                 </tr>
                             </thead>
-                            {{-- <tbody>
-                                @foreach($employee->leaveBalances as $index => $data)
-                                    @if($data->year == date('Y')) <!-- Show only the current year record -->
-                                    <tr>
-                                        <td>{{ $index + 1 }}</td>
-                                        <td>{{ $employee->employee_id }}</td> <!-- Employee ID from Subu table -->
-                                        <td>{{ $employee->name }}</td> <!-- Name from Subu table -->
-                                        <td>{{ $data->year }}</td> <!-- Year from Leavebalance table -->
-                                        <td>{{ $data->annual_leave_entitlement }}</td> <!-- Leave entitlement -->
-                                        <td>{{ $totalleaveTillYet }}</td> <!-- Leave entitlement -->
-                                        @php
-                                        $totalleavetakenTillYet = $totalleaveTakenPL + $totalleaveTakenSL;
-                                        $currentleaveTillYet = $totalleaveTillYet - $totalleavetakenTillYet;
-                                        $currentleavebalance = $data->annual_leave_entitlement - $totalleavetakenTillYet;
-                                    @endphp
-                                        <td>{{ $totalleavetakenTillYet }}</td> <!-- Leave entitlement -->
-                                        <td>{{ $currentleaveTillYet }}</td> <!-- Leave entitlement -->
-                                        <td>{{ $currentleavebalance }}</td> <!-- Leave entitlement -->
-                                        <td>{{ $totalleaveTakenLOP }}</td> <!-- Leave entitlement -->
-                                    </tr>
-                                    @endif
-                                @endforeach
-                            </tbody> --}}
+
 
 
 

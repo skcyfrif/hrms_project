@@ -6,9 +6,9 @@
             <div class="col-md-12 grid-margin stretch-card">
                 <div class="card">
                     <div class="card-body">
-                        <h6 class="card-title">All Report managers</h6>
+                        <h6 class="card-title">Claim Status of All Report managers</h6>
                         <div class="table-responsive">
-                            <form method="GET" action="{{ route('hrhead.hrm.rm.leave') }}" class="row mb-4">
+                            <form method="GET" action="{{ route('hrhead.hrm.rm.claim') }}" class="row mb-4">
                                 <div class="col-md-3">
                                     <label>HR Manager</label>
                                     <select name="hr_manager_id" class="form-control" required>

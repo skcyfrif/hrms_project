@@ -1,6 +1,7 @@
 @extends('report_manager.report_manager_dashboard')
 @section('report_manager')
     <div class="page-content">
+        <h6 class="text-center">Make Permanent</h6>
 
         <nav class="page-breadcrumb">
             <ol class="breadcrumb">

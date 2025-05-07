@@ -6,10 +6,13 @@
         <div class="row profile-body">
             <!-- Middle Wrapper Start -->
             <div class="col-md-12 col-xl-12 middle-wrapper">
+                <button onclick="window.history.back();" class="btn btn-secondary">
+                    Back
+                </button>
                 <div class="row">
                     <div class="card shadow-sm border-0">
                         <div class="card-body p-5">
-                            <h6 class="card-title text-center mb-4">Edit Employee Details</h6>
+                            <h6 class="card-title text-center mb-4">Edit Hr Manager Details</h6>
 
                             <!-- Form Start -->
                             <form method="POST" action="{{ route('update.hrmanager', $manager->id) }}" class="forms-sample"

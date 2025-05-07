@@ -52,12 +52,6 @@
 
 
 
-                            {{-- Show active filter --}}
-                            {{-- @if(request('date'))
-                                <p>Showing results for: <strong>{{ \Carbon\Carbon::parse(request('date'))->format('d M Y') }}</strong></p>
-                            @elseif(request('month'))
-                                <p>Showing results for: <strong>{{ \Carbon\Carbon::parse(request('month'))->format('F Y') }}</strong></p>
-                            @endif --}}
 
                             {{-- Attendance Table --}}
                             <table id="dataTableExample" class="table">
@@ -79,11 +73,12 @@
                                             <td>{{ $employee->employee_id }}</td>
                                             <td>{{ $item->name }}</td>
                                             <td>{{ \Carbon\Carbon::parse($item->date)->format('d/M/Y') }}</td>
-                                            <td>{{ \Carbon\Carbon::parse($item->check_in_time)->format('h:i A') ?? '---' }}</td>
+                                            <td>{{ \Carbon\Carbon::parse($item->check_in_time)->format('h:i A') ?? '---' }}
+                                            </td>
                                             <td>{{ $item->status }}</td>
                                             <td>
                                                 <a href="{{ route('delete.employeeattendance', $item->id) }}"
-                                                   class="btn btn-inverse-danger" id="delete">Delete</a>
+                                                    class="btn btn-inverse-danger" id="delete">Delete</a>
                                             </td>
                                         </tr>
                                     @empty

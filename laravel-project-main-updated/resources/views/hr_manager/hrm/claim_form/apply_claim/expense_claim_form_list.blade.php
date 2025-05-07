@@ -4,7 +4,7 @@
 
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
-            <a href="{{route('add.hrmclaim')}}" class="btn btn-inverse-info">Add Expense Details of Employee</a>
+            <a href="{{route('add.hrmclaim')}}" class="btn btn-inverse-info">Add Expense Details of {{$employyee->name}}</a>
             {{-- <a href="#" class="btn btn-inverse-info">Add payslip Details of Employee</a> --}}
         </ol>
     </nav>

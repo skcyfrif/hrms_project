@@ -1,6 +1,7 @@
 @extends('hr_manager.hr_manager_dashboard')
 @section('hr_manager')
 <div class="page-content">
+    <h6 class="text-center">Employees Claim Approval</h6>
 
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">

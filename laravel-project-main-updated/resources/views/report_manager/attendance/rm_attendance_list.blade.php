@@ -5,7 +5,7 @@
         <nav class="page-breadcrumb">
             <ol class="breadcrumb">
                 {{-- <a href="#" class="btn btn-inverse-info">Add Attendance of Employee</a> --}}
-                <a href="{{ route('add.rmattendance') }}" class="btn btn-inverse-info">Add Attendance of Employee</a>
+                <a href="{{ route('add.rmattendance') }}" class="btn btn-inverse-info">Add Attendance of Reporting Manager</a>
             </ol>
         </nav>
 

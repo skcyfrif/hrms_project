@@ -1,6 +1,7 @@
 @extends('hr_head.hr_head_dashboard')
 @section('hr_head')
 <div class="page-content">
+    <h6 class="text-center">Leave approval of all Hr Managers</h6>
     <nav class="page-breadcrumb">
         <ol class="breadcrumb"></ol>
     </nav>

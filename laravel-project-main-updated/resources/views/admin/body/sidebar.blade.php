@@ -24,14 +24,14 @@
             <li class="nav-item">
                 <a href="{{ route('subrat.list') }}" class="nav-link">
                     <i class="link-icon" data-feather="users"></i>
-                    <span class="link-title">Employee Directory</span>
+                    <span class="link-title">Add Hr Head</span>
                 </a>
             </li>
 
             <li class="nav-item">
                 <a href="{{ route('admin.hr_heads') }}" class="nav-link" id="allHrHeadLink">
                     <i class="link-icon" data-feather="user-check"></i>
-                    <span class="link-title">All HR Head</span>
+                    <span class="link-title">View All Employees</span>
                 </a>
             </li>
 

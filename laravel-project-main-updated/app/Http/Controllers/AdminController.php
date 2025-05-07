@@ -16,6 +16,8 @@ use App\Models\LeaveRejection;
 use App\Models\Leave;
 use App\Models\Expenseclaim;
 use App\Models\ClaimRejection;
+use Carbon\Carbon;
+
 
 
 
@@ -556,19 +558,22 @@ public function viewAllEmployeesAttendances(Request $request)
 
 public function viewAllHrHeadsLeaves(Request $request)
 {
-    $selectedMonth = $request->input('month') ?? now()->format('Y-m');
-    $currentMonth = now()->format('Y-m');
+    $month = $request->input('month', now()->month); // numeric month (1-12)
+    $year = $request->input('year', now()->year);    // full year (e.g., 2025)
 
-    // Prevent future month selection
-    if ($selectedMonth > $currentMonth) {
-        return redirect()->back()->with('error', 'You cannot select a future month.');
+    try {
+        $monthStart = \Carbon\Carbon::createFromDate($year, $month, 1)->startOfMonth();
+        $monthEnd = \Carbon\Carbon::createFromDate($year, $month, 1)->endOfMonth();
+        $selectedMonth = $monthStart->format('Y-m');
+
+        $currentMonth = now()->format('Y-m');
+        if ($selectedMonth > $currentMonth) {
+            return redirect()->back()->with('error', 'You cannot select a future month.');
+        }
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', 'Invalid month or year selected.');
     }
 
-    // Define the start and end of the selected month
-    $monthStart = \Carbon\Carbon::parse($selectedMonth)->startOfMonth();
-    $monthEnd = \Carbon\Carbon::parse($selectedMonth)->endOfMonth();
-
-    // Fetch HR Heads and their leave data
     $hrHeads = Subu::with(['leave' => function ($query) use ($monthStart, $monthEnd) {
         $query->where(function ($q) use ($monthStart, $monthEnd) {
             $q->whereBetween('leave_from', [$monthStart, $monthEnd])
@@ -579,13 +584,13 @@ public function viewAllHrHeadsLeaves(Request $request)
               });
         });
     }])
-    ->where('user_role', 'head')    // Only HR heads (user role)
-    ->whereHas('leave')             // Ensure the HR head has applied for leave
+    ->where('user_role', 'head')
+    ->whereHas('leave')
     ->get();
 
-    // Return the view with data
-    return view('admin.leavestatus.hr_head_leave_status', compact('hrHeads', 'selectedMonth'));
+    return view('admin.leavestatus.hr_head_leave_status', compact('hrHeads', 'selectedMonth', 'month', 'year'));
 }
+
 
 
 
@@ -593,19 +598,22 @@ public function viewAllHrHeadsLeaves(Request $request)
 
 public function viewAllHrmLeaves(Request $request)
 {
-    $selectedMonth = $request->input('month') ?? now()->format('Y-m');
-    $currentMonth = now()->format('Y-m');
+    $month = $request->input('month', now()->month); // numeric month (1-12)
+    $year = $request->input('year', now()->year);    // full year (e.g., 2025)
 
-    // Prevent future month selection
-    if ($selectedMonth > $currentMonth) {
-        return redirect()->back()->with('error', 'You cannot select a future month.');
+    try {
+        $monthStart = \Carbon\Carbon::createFromDate($year, $month, 1)->startOfMonth();
+        $monthEnd = \Carbon\Carbon::createFromDate($year, $month, 1)->endOfMonth();
+        $selectedMonth = $monthStart->format('Y-m');
+
+        $currentMonth = now()->format('Y-m');
+        if ($selectedMonth > $currentMonth) {
+            return redirect()->back()->with('error', 'You cannot select a future month.');
+        }
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', 'Invalid month or year selected.');
     }
 
-    // Define the start and end of the selected month
-    $monthStart = \Carbon\Carbon::parse($selectedMonth)->startOfMonth();
-    $monthEnd = \Carbon\Carbon::parse($selectedMonth)->endOfMonth();
-
-    // Fetch HR Heads and their leave data
     $hrHeads = Subu::with(['leave' => function ($query) use ($monthStart, $monthEnd) {
         $query->where(function ($q) use ($monthStart, $monthEnd) {
             $q->whereBetween('leave_from', [$monthStart, $monthEnd])
@@ -616,29 +624,32 @@ public function viewAllHrmLeaves(Request $request)
               });
         });
     }])
-    ->where('user_role', 'manager')    // Only HR heads (user role)
-    ->whereHas('leave')             // Ensure the HR head has applied for leave
+    ->where('user_role', 'manager')
+    ->whereHas('leave')
     ->get();
 
 
-    return view('admin.leavestatus.all_hr_managers_leave', compact('hrHeads', 'selectedMonth'));
+    return view('admin.leavestatus.all_hr_managers_leave', compact('hrHeads', 'selectedMonth', 'month', 'year'));
 }
 
 public function viewAllRmLeaves(Request $request)
 {
-    $selectedMonth = $request->input('month') ?? now()->format('Y-m');
-    $currentMonth = now()->format('Y-m');
+    $month = $request->input('month', now()->month); // numeric month (1-12)
+    $year = $request->input('year', now()->year);    // full year (e.g., 2025)
 
-    // Prevent future month selection
-    if ($selectedMonth > $currentMonth) {
-        return redirect()->back()->with('error', 'You cannot select a future month.');
+    try {
+        $monthStart = \Carbon\Carbon::createFromDate($year, $month, 1)->startOfMonth();
+        $monthEnd = \Carbon\Carbon::createFromDate($year, $month, 1)->endOfMonth();
+        $selectedMonth = $monthStart->format('Y-m');
+
+        $currentMonth = now()->format('Y-m');
+        if ($selectedMonth > $currentMonth) {
+            return redirect()->back()->with('error', 'You cannot select a future month.');
+        }
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', 'Invalid month or year selected.');
     }
 
-    // Define the start and end of the selected month
-    $monthStart = \Carbon\Carbon::parse($selectedMonth)->startOfMonth();
-    $monthEnd = \Carbon\Carbon::parse($selectedMonth)->endOfMonth();
-
-    // Fetch HR Heads and their leave data
     $hrHeads = Subu::with(['leave' => function ($query) use ($monthStart, $monthEnd) {
         $query->where(function ($q) use ($monthStart, $monthEnd) {
             $q->whereBetween('leave_from', [$monthStart, $monthEnd])
@@ -649,31 +660,33 @@ public function viewAllRmLeaves(Request $request)
               });
         });
     }])
-
-    ->where('user_role', 'reportmanager')    // Only HR heads (user role)
-    ->whereHas('leave')             // Ensure the HR head has applied for leave
+    ->where('user_role', 'reportmanager')
+    ->whereHas('leave')
     ->get();
 
 
-    return view('admin.leavestatus.all_rm_leavestatus', compact('hrHeads', 'selectedMonth'));
+    return view('admin.leavestatus.all_rm_leavestatus', compact('hrHeads', 'selectedMonth', 'month', 'year'));
 }
 
 
 public function viewAllEmployeeLeaves(Request $request)
 {
-    $selectedMonth = $request->input('month') ?? now()->format('Y-m');
-    $currentMonth = now()->format('Y-m');
+    $month = $request->input('month', now()->month); // numeric month (1-12)
+    $year = $request->input('year', now()->year);    // full year (e.g., 2025)
 
-    // Prevent future month selection
-    if ($selectedMonth > $currentMonth) {
-        return redirect()->back()->with('error', 'You cannot select a future month.');
+    try {
+        $monthStart = \Carbon\Carbon::createFromDate($year, $month, 1)->startOfMonth();
+        $monthEnd = \Carbon\Carbon::createFromDate($year, $month, 1)->endOfMonth();
+        $selectedMonth = $monthStart->format('Y-m');
+
+        $currentMonth = now()->format('Y-m');
+        if ($selectedMonth > $currentMonth) {
+            return redirect()->back()->with('error', 'You cannot select a future month.');
+        }
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', 'Invalid month or year selected.');
     }
 
-    // Define the start and end of the selected month
-    $monthStart = \Carbon\Carbon::parse($selectedMonth)->startOfMonth();
-    $monthEnd = \Carbon\Carbon::parse($selectedMonth)->endOfMonth();
-
-    // Fetch HR Heads who have applied for leave within the selected month
     $hrHeads = Subu::with(['leave' => function ($query) use ($monthStart, $monthEnd) {
         $query->where(function ($q) use ($monthStart, $monthEnd) {
             $q->whereBetween('leave_from', [$monthStart, $monthEnd])
@@ -684,11 +697,11 @@ public function viewAllEmployeeLeaves(Request $request)
               });
         });
     }])
-    ->where('user_role', 'user')    // Only HR heads (user role)
-    ->whereHas('leave')             // Ensure the HR head has applied for leave
+    ->where('user_role', 'user')
+    ->whereHas('leave')
     ->get();
 
-    return view('admin.leavestatus.all_employee_leavestatus', compact('hrHeads', 'selectedMonth'));
+    return view('admin.leavestatus.all_employee_leavestatus', compact('hrHeads', 'selectedMonth', 'month', 'year'));
 }
 
 
@@ -993,12 +1006,10 @@ public function rejectClaimSubmitbyAdmin(Request $request)
     // Display the list of employees
     public function SubList()
     {
-        // $tests = Subu::latest()->get();
 
     $tests = Subu::where('created_by', auth()->user()->id)->latest()->get();
 
-        // $managers = HrManager::latest()->get();
-        // $sams = Employee::latest()->get();
+
         return view('admin.employee_management.employee_directory.employee_list', compact('tests'));
     }
 
@@ -1024,60 +1035,62 @@ public function rejectClaimSubmitbyAdmin(Request $request)
             'name' => 'required',
             // 'photo' => 'required',
             'photo' => 'image|mimes:jpeg,png,jpg,gif|max:2048', // Validate the image
-            'email' => 'required',
-            'phone_number' => 'required',
-            'dob' => 'required',
-            'gender' => 'required',
+            'email' => 'required|email|max:255',
+            'phone_number' => 'required|digits:10',
+            'dob' => 'required|date|before:today',
+            'gender' => 'required|in:male,female,other',
+
 
              // Contact Information
-            // 'permanent_address' => 'required',
-            'permanent_address_line1' => 'required',
-            'permanent_address_line2' => 'required',
-            'permanent_city' => 'required',
-            'permanent_district' => 'required',
-            'permanent_state' => 'required',
-            'permanent_pin' => 'required',
-            'current_address_line1' => 'required',
-            'current_address_line2' => 'nullable',
-            'current_city' => 'required',
-            'current_district' => 'required',
-            'current_state' => 'required',
-            'current_pin' => 'required',
 
-            // 'current_address' => 'required',
-            'emergency_contact' => 'required',
+            'permanent_address_line1' => 'required|string|max:255',
+            'permanent_address_line2' => 'required|string|max:255',
+            'permanent_city' => 'required|string|max:100',
+            'permanent_district' => 'required|string|max:100',
+            'permanent_state' => 'required|string|max:100',
+            'permanent_pin' => 'required|digits:6',
+
+            'current_address_line1' => 'required|string|max:255',
+            'current_address_line2' => 'nullable|string|max:255',
+            'current_city' => 'required|string|max:100',
+            'current_district' => 'required|string|max:100',
+            'current_state' => 'required|string|max:100',
+            'current_pin' => 'required|digits:6',
+
+            'emergency_contact' => 'required|digits:10',
 
                // Employment Details
-            'designation' => 'required',
-            'department' => 'required',
-            'work_location' => 'required',
+            'designation' => 'required|string|max:100',
+            'department' => 'required|string|max:100',
+            'work_location' => 'required|string|max:100',
             'doj' => 'required',
             'employment_type' => 'required',
             'created_by' => 'required',
 
             // Bank Details
-            'account_number' => 'required',
-            'ifsc_code' => 'required',
-            'bank_name' => 'required',
-            'branch_name' => 'required',
+            'account_number' => 'required|numeric|digits_between:9,18',
+            'ifsc_code'      => 'required|regex:/^[A-Z]{4}0[A-Z0-9]{6}$/i',
+            'bank_name'      => 'required|string|max:100',
+            'branch_name'    => 'required|string|max:100',
+
 
 
             // Compensation Details
             'types' => 'required',
             'pay_cycle' => 'required',
-            'total_leave_allowed' => 'required',
-            'basic_salary' => 'required',
-            'house_rent_allowance' => 'required',
-            'conveyance_allowance' => 'required',
-            'lunch_allowance' => 'required',
-            'personal_pay' => 'required',
-            'medical_allowance' => 'required',
-            'other_allowance' => 'required',
-            'leave_travel_allowance' => 'required',
-            'total_ammount' => 'required',
-            'professional_tax' => 'required',
-            'esic' => 'required',
-            'net_salary_payable' => 'required',
+            'total_leave_allowed'       => 'required|numeric|min:0',
+            'basic_salary'              => 'required|numeric|min:0',
+            'house_rent_allowance'      => 'required|numeric|min:0',
+            'conveyance_allowance'      => 'required|numeric|min:0',
+            'lunch_allowance'           => 'required|numeric|min:0',
+            'personal_pay'              => 'required|numeric|min:0',
+            'medical_allowance'         => 'required|numeric|min:0',
+            'other_allowance'           => 'required|numeric|min:0',
+            'leave_travel_allowance'    => 'required|numeric|min:0',
+            'total_ammount'             => 'required|numeric|min:0',
+            'professional_tax'          => 'required|numeric|min:0',
+            'esic'                      => 'required|numeric|min:0',
+            'net_salary_payable'        => 'required|numeric|min:0',
 
              // System Access
             'user_role' => 'required',
@@ -1141,6 +1154,7 @@ public function rejectClaimSubmitbyAdmin(Request $request)
             'phone_number' => $request->phone_number,
             'dob' => $request->dob,
             'gender' => $request->gender,
+
 
 
             // Contact Information
@@ -1240,14 +1254,14 @@ public function rejectClaimSubmitbyAdmin(Request $request)
             'employee_id' => $request->employee_id,
             'name' => $request->name,
             'photo' => $request->photo,
-            // 'photo' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+
             'email' => $request->email,
             'phone_number' => $request->phone_number,
             'dob' => $request->dob,
             'gender' => $request->gender,
 
             // Contact Information
-            // 'permanent_address' => $request->permanent_address,
+
             'permanent_address_line1' => $request->permanent_address_line1,
             'permanent_address_line2' => $request->permanent_address_line2,
             'permanent_city' => $request->permanent_city,
@@ -1261,7 +1275,7 @@ public function rejectClaimSubmitbyAdmin(Request $request)
             'current_state' => $request->current_state,
             'current_pin' => $request->current_pin,
 
-            // 'current_address' => $request->current_address,
+
             'emergency_contact' => $request->emergency_contact,
             // Employment Details
             'designation' => $request->designation,

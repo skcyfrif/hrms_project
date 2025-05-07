@@ -6,10 +6,23 @@
         <div class="row profile-body">
             <!-- Middle Wrapper Start -->
             <div class="col-md-12 col-xl-12 middle-wrapper">
+                <nav class="page-breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <button onclick="window.history.back();" class="btn btn-secondary">
+                                Back
+                            </button>
+                        </li>
+
+                        {{-- <li class="breadcrumb-item active" aria-current="page">
+                            Employees Created by {{ $hrManager->name }}
+                        </li> --}}
+                    </ol>
+                </nav>
                 <div class="row">
                     <div class="card shadow-sm border-0">
                         <div class="card-body p-5">
-                            <h6 class="card-title text-center mb-4">Edit Employee Details</h6>
+                            <h6 class="card-title text-center mb-4">Edit Hr Head Details</h6>
 
                             <!-- Form Start -->
                             <form method="POST" action="{{ route('update.step', $test->id) }}" class="forms-sample"
@@ -56,6 +69,8 @@
                                             @endif
 
                                         </div>
+
+
                                         <div class="col-md-4">
                                             <label for="email" class="form-label">Email</label>
                                             <input type="text" class="form-control" id="email" name="email"
@@ -269,23 +284,17 @@
                                             @enderror
                                         </div>
 
-                                        {{-- <div class="col-md-4">
-                                        <label for="current_address" class="form-label">Current Address</label>
-                                        <textarea class="form-control" id="current_address" name="current_address" rows="4" required>{{ $test->current_address }}</textarea>
-                                        @error('current_address')
-                                            <div class="text-danger mt-1">{{ $message }}</div>
-                                        @enderror
-                                    </div> --}}
+
                                         <div class="col-md-4">
                                             <label for="emergency_contact" class="form-label">Emergency Contact</label>
-                                            <textarea class="form-control" id="emergency_contact" name="emergency_contact" rows="4" required>{{ $test->emergency_contact }}</textarea>
+                                            <input type="text" class="form-control" id="emergency_contact"
+                                                name="emergency_contact" value="{{ $test->emergency_contact }}" required>
                                             @error('emergency_contact')
                                                 <div class="text-danger mt-1">{{ $message }}</div>
                                             @enderror
                                         </div>
 
                                         {{-- Employment Details --}}
-
 
                                         <h3 style="color: red; margin-top: 1cm; margin-bottom: 0.5cm;">Employee Details
                                         </h3>

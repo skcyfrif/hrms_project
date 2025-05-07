@@ -89,7 +89,7 @@
             <div class="card shadow-sm bg-light">
                 <div class="card-header bg-danger text-white">
 
-                    <a href="{{ route('attendance.statusinrm', ['date' => now()->toDateString()]) }}" class="btn btn-primary">
+                    <a href="{{ route('rm.employee.attendance', ['date' => now()->toDateString()]) }}" class="btn btn-primary">
                         Attendance Snapshot: ({{ $presentCount }})
                     </a>
 

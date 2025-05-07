@@ -16,7 +16,10 @@ use App\Models\Expenseclaim;
 use App\Models\LeaveRejection;
 use App\Models\ClaimRejection;
 use App\Models\Makepermanent;
-
+use App\Mail\ContactMail;
+use App\Mail\OfferLetterMail;
+use App\Mail\OfferLetterFull;
+use Illuminate\Support\Facades\Mail;
 
 use Carbon\Carbon;
 
@@ -40,7 +43,7 @@ class HrManagerController extends Controller
     $user = Auth::user();
     $employee = $user->subu;
     $employyeData = Subu::where('user_id', $user->id)->first();
-    $leaveBalanceData = LeaveBalance::where('employee_id', $employyeData->id)->first();
+    $leaveBalanceData = Leavebalance::where('employee_id', $employyeData->id)->first();
     $attendance = $employee->attendances()->latest()->first();
     $totalMembers = Subu::where('created_by', $user->id)->count();
 
@@ -215,43 +218,42 @@ public function EmployeeList()
             // 'employee_id' => 'required',
             'name' => 'required',
             'photo' => 'image|mimes:jpeg,png,jpg,gif|max:2048', // Validate the image
-            'email' => 'required',
-            'phone_number' => 'required',
-            'dob' => 'required',
-            'gender' => 'required',
+            'email' => 'required|email|max:255',
+            'phone_number' => 'required|digits:10',
+            'dob' => 'required|date|before:today',
+            'gender' => 'required|in:male,female,other',
 
              // Contact Information
 
+            'permanent_address_line1' => 'required|string|max:255',
+            'permanent_address_line2' => 'required|string|max:255',
+            'permanent_city' => 'required|string|max:100',
+            'permanent_district' => 'required|string|max:100',
+            'permanent_state' => 'required|string|max:100',
+            'permanent_pin' => 'required|digits:6',
 
-            'permanent_address_line1' => 'required',
-            'permanent_address_line2' => 'required',
-            'permanent_city' => 'required',
-            'permanent_district' => 'required',
-            'permanent_state' => 'required',
-            'permanent_pin' => 'required',
-            'current_address_line1' => 'required',
-            'current_address_line2' => 'nullable',
-            'current_city' => 'required',
-            'current_district' => 'required',
-            'current_state' => 'required',
-            'current_pin' => 'required',
+            'current_address_line1' => 'required|string|max:255',
+            'current_address_line2' => 'nullable|string|max:255',
+            'current_city' => 'required|string|max:100',
+            'current_district' => 'required|string|max:100',
+            'current_state' => 'required|string|max:100',
+            'current_pin' => 'required|digits:6',
 
-
-            'emergency_contact' => 'required',
+            'emergency_contact' => 'required|digits:10',
 
                // Employment Details
-            'designation' => 'required',
-            'department' => 'required',
-            'work_location' => 'required',
+           'designation' => 'required|string|max:100',
+            'department' => 'required|string|max:100',
+            'work_location' => 'required|string|max:100',
             'doj' => 'required',
             'employment_type' => 'required',
             'created_by' => 'required',
 
             // Bank Details
-            'account_number' => 'required',
-            'ifsc_code' => 'required',
-            'bank_name' => 'required',
-            'branch_name' => 'required',
+            'account_number' => 'required|numeric|digits_between:9,18',
+            'ifsc_code'      => 'required|regex:/^[A-Z]{4}0[A-Z0-9]{6}$/i',
+            'bank_name'      => 'required|string|max:100',
+            'branch_name'    => 'required|string|max:100',
 
 
             // Compensation Details
@@ -269,19 +271,19 @@ public function EmployeeList()
             // 'total_consolidated_ammount' => 'required',
 
 
-            'total_leave_allowed' => 'required',
-            'basic_salary' => 'required',
-            'house_rent_allowance' => 'required',
-            'conveyance_allowance' => 'required',
-            'lunch_allowance' => 'required',
-            'personal_pay' => 'required',
-            'medical_allowance' => 'required',
-            'other_allowance' => 'required',
-            'leave_travel_allowance' => 'required',
-            'total_ammount' => 'required',
-            'professional_tax' => 'required',
-            'esic' => 'required',
-            'net_salary_payable' => 'required',
+            'total_leave_allowed'       => 'required|numeric|min:0',
+            'basic_salary'              => 'required|numeric|min:0',
+            'house_rent_allowance'      => 'required|numeric|min:0',
+            'conveyance_allowance'      => 'required|numeric|min:0',
+            'lunch_allowance'           => 'required|numeric|min:0',
+            'personal_pay'              => 'required|numeric|min:0',
+            'medical_allowance'         => 'required|numeric|min:0',
+            'other_allowance'           => 'required|numeric|min:0',
+            'leave_travel_allowance'    => 'required|numeric|min:0',
+            'total_ammount'             => 'required|numeric|min:0',
+            'professional_tax'          => 'required|numeric|min:0',
+            'esic'                      => 'required|numeric|min:0',
+            'net_salary_payable'        => 'required|numeric|min:0',
 
              // System Access
             'user_role' => 'required',
@@ -579,7 +581,7 @@ public function approveLeave($id)
                 $employeeId = $leave->employee_id;
                 $year = \Carbon\Carbon::parse($leave->leave_from)->year;
 
-                $leaveBalance = LeaveBalance::where('employee_id', $employeeId)
+                $leaveBalance = Leavebalance::where('employee_id', $employeeId)
                     ->where('year', $year)
                     ->first();
 
@@ -640,7 +642,7 @@ public function rejectLeave($id)
                 $employeeId = $leave->employee_id;
                 $year = \Carbon\Carbon::parse($leave->leave_from)->year;
 
-                $leaveBalance = LeaveBalance::where('employee_id', $employeeId)
+                $leaveBalance = Leavebalance::where('employee_id', $employeeId)
                     ->where('year', $year)
                     ->first();
 
@@ -840,29 +842,74 @@ public function SalaryApproval()
 }
 
 
-public function AttendanceStatusinHrm(Request $request)
+
+
+
+public function viewRmAttendances(Request $request)
 {
-    // Get the logged-in user's ID
-    $managerId = auth()->user()->id;
+    $month = $request->input('month');
+            $currentYear = now()->year;
+    $loggedInmanagerId = auth()->id(); // get current logged in HR head
 
-    // Start the query for attendance records
-    $attendQuery = Employeeattendance::whereHas('employeeattendancestatusinhrm', function ($query) use ($managerId) {
-        $query->whereIn('user_role', ['user', 'reportmanager'])  // Check for both 'user' and 'reportmanager'
-              ->where('created_by', $managerId);  // Filter by logged-in manager's ID
-    });
 
-    // Apply date filter if the 'date' parameter is provided
-    if ($request->has('date') && $request->date) {
-        $attendQuery->whereDate('date', $request->date); // Filter by selected date
-    }
+     // Get HR managers created by this HR head
+     $hrmanagers = Subu::where('user_role', 'reportmanager')
+                ->where('created_by', $loggedInmanagerId)
+                ->get();
 
-    // Execute the query and get the results
-    $attend = $attendQuery->latest()->get();
+        foreach ($hrmanagers as $manager) {
+            $attendanceQuery = $manager->attendance();
 
-    // Pass the attendance data to the view
-    return view('hr_manager.hrm.attendance_status_of_all_employees.attendance_status_in_hrm', compact('attend'));
+            if ($month) {
+                $attendanceQuery->whereMonth('date', $month)
+                                ->whereYear('date', $currentYear);
+            } else {
+                $attendanceQuery->whereYear('date', $currentYear);
+            }
 
+            // Get all matching records as a collection
+            $manager->filteredAttendances = $attendanceQuery->orderBy('date')->get();
+        }
+
+
+
+    return view('hr_manager.hrm.attendance_status_of_all_employees.rm_attendance_status', compact('hrmanagers', 'month'));
 }
+
+
+public function viewEmployeeAttendances(Request $request)
+{
+    $month = $request->input('month');
+            $currentYear = now()->year;
+    $loggedInmanagerId = auth()->id(); // get current logged in HR head
+
+
+     // Get HR managers created by this HR head
+     $hrmanagers = Subu::where('user_role', 'user')
+                ->where('created_by', $loggedInmanagerId)
+                ->get();
+
+        foreach ($hrmanagers as $manager) {
+            $attendanceQuery = $manager->attendance();
+
+            if ($month) {
+                $attendanceQuery->whereMonth('date', $month)
+                                ->whereYear('date', $currentYear);
+            } else {
+                $attendanceQuery->whereYear('date', $currentYear);
+            }
+
+            // Get all matching records as a collection
+            $manager->filteredAttendances = $attendanceQuery->orderBy('date')->get();
+        }
+
+
+
+    return view('hr_manager.hrm.attendance_status_of_all_employees.employee_attendance_status', compact('hrmanagers', 'month'));
+}
+
+
+
 
 
 
@@ -1010,7 +1057,11 @@ public function HrmAttendanceList(Request $request)
 
 public function CheckLeaveofHrm()
     {
-    return view('hr_manager.hrm.leave_management.leavebalance.check_leave_balance');
+
+        $user = auth()->user(); // Assuming HR Head is logged in
+        return view('hr_manager.hrm.leave_management.leavebalance.check_leave_balance', [
+            'hrManagerName' => $user->name,
+        ]);
     }
 
 
@@ -1134,7 +1185,10 @@ public function DeleteHrmLeave($id)
     $employye = Subu::where('user_id', $user->id)->first();
     $approvals = Leave::with('leavestatusofhrm')->where('employee_id', $employye->id)->latest()->get();
 
-    return view('hr_manager.hrm.leave_management.leave_status.leave_status', compact('approvals'));
+    return view('hr_manager.hrm.leave_management.leave_status.leave_status', [
+        'approvals' => $approvals,
+        'hrManagerName' => $employye->name, // or $employye->full_name if that's the field
+    ]);
 
 }
 
@@ -1175,7 +1229,7 @@ public function DeleteHrmLeave($id)
         // 'receipt_attached' => 'required',
         'hrhead_approval' => 'required',
         'approval_date' => 'nullable|date',
-        'reimbursed' => 'required',
+        'reimbursed' => 'required|numeric',
         // 'processed_date' => 'nullable|date',
     ], [
         'expense_date.before_or_equal' => 'The expense date cannot be after the claim date.',
@@ -1212,7 +1266,7 @@ public function UpdateClaimForm(Request $request, $id)
         // 'receipt_attached' => 'required',
         'hrhead_approval' => 'required',
         'approval_date' => 'nullable|date',
-        'reimbursed' => 'required',
+        'reimbursed' => 'required|numeric',
         // 'processed_date' => 'nullable|date',
     ], [
         'expense_date.before_or_equal' => 'The expense date cannot be after the claim date.',
@@ -1252,7 +1306,7 @@ public function UpdateClaimForm(Request $request, $id)
                         ->latest()
                         ->get();
 
-        return view('hr_manager.hrm.claim_form.claim_status.claim_approval_status', compact('approvals'));
+        return view('hr_manager.hrm.claim_form.claim_status.claim_approval_status', compact('approvals', 'employye'));
     }
 
 // carrer portal
@@ -1521,17 +1575,32 @@ public function RejectListing()
 return view('hr_manager.carrer_portal.rejected.rejected', compact('tests'));
 }
 
+// public function viewOfferLetterForIntern($id)
+//     {
+//         $candidate = Apply::findOrFail($id); // Fetch the employee by ID
+//         return view('hr_manager.carrer_portal.offerletter.offer_letter_intern', compact('candidate')); // Pass data to view
+//     }
 public function viewOfferLetterForIntern($id)
     {
         $candidate = Apply::findOrFail($id); // Fetch the employee by ID
+        Mail::to($candidate->email)->send(new OfferLetterMail($candidate));
+
         return view('hr_manager.carrer_portal.offerletter.offer_letter_intern', compact('candidate')); // Pass data to view
     }
 
 public function viewOfferLetterForFullTime($id)
 {
     $candidate = Apply::findOrFail($id); // Fetch the employee by ID
+    Mail::to($candidate->email)->send(new OfferLetterFull($candidate));
+
     return view('hr_manager.carrer_portal.offerletter.offer_letter_fulltime', compact('candidate')); // Pass data to view
 }
+
+// public function viewOfferLetterForFullTime($id)
+// {
+//     $candidate = Apply::findOrFail($id); // Fetch the employee by ID
+//     return view('hr_manager.carrer_portal.offerletter.offer_letter_fulltime', compact('candidate')); // Pass data to view
+// }
 
 public function ReSchedule($id)
 {
@@ -1868,12 +1937,12 @@ public function EditReportManager($id)
             $monthlyEntitlement = 1.5;
             $proRatedEntitlement = round($monthsRemaining * $monthlyEntitlement, 1);
 
-            $leaveBalance = LeaveBalance::where('employee_id', $employee->id)
+            $leaveBalance = Leavebalance::where('employee_id', $employee->id)
                 ->where('year', $currentYear)
                 ->first();
 
             if (!$leaveBalance) {
-                LeaveBalance::create([
+                Leavebalance::create([
                     'employee_id' => $employee->id,
                     'year' => $currentYear,
                     'annual_leave_entitlement' => $proRatedEntitlement,
@@ -2076,84 +2145,86 @@ public function getallEmployeeDetails($employee_id)
 
 
 public function EmpStoreSalaries(Request $request)
- {
+    {
 
-     $request->validate([
-         'employee_id' => 'required',
-         'name' => 'required',
-         'department' => 'required',
-         'doj' => 'required',
-         'gender' => 'required',
-         'grade' => 'required',
-         'account_number' => 'required',
-         'ifsc_code' => 'required',
-         'bank_name' => 'required',
-         'branch_name' => 'required',
-         'basic_salary' => 'required',
-         'house_rent_allowance' => 'required',
-         'conveyance_allowance' => 'required',
-         'lunch_allowance' => 'required',
-         'personal_pay' => 'required',
-         'medical_allowance' => 'required',
-         'other_allowance' => 'required',
-         'leave_travel_allowance' => 'required',
-        //  'total_ammount' => 'required',
-         'professional_tax' => 'required',
-         'esic' => 'required',
-         'net_salary_payables' => 'required',
-         'lop_days' => 'required',
-         'standard_days' => 'required',
-         'salary_for_the_month' => 'required',
-         'no_of_working_day' => 'required',
-         'total_leave_taken' => 'required',
-         'remarks' => 'required'
+        $request->validate([
+            'employee_id' => 'required',
+            'name' => 'required',
+            'department' => 'required',
+            'doj' => 'required',
+            'gender' => 'required',
+            'grade' => 'required',
+            'account_number' => 'required',
+            'ifsc_code' => 'required',
+            'bank_name' => 'required',
+            'branch_name' => 'required',
+            'basic_salary' => 'required',
+            'house_rent_allowance' => 'required',
+            'conveyance_allowance' => 'required',
+            'lunch_allowance' => 'required',
+            'personal_pay' => 'required',
+            'medical_allowance' => 'required',
+            'other_allowance' => 'required',
+            'leave_travel_allowance' => 'required',
+           //  'total_ammount' => 'required',
+            'professional_tax' => 'required',
+            'esic' => 'required',
+            'net_salary_payables' => 'required',
+            'lop_days' => 'required',
+            'standard_days' => 'required',
+            'salary_for_the_month' => 'required',
+            'no_of_working_day' => 'required',
+            'total_leave_taken' => 'required',
+            'remarks' => 'required'
 
-     ]);
+        ]);
 
-    //   dd($request->all());
+       //   dd($request->all());
 
-     // Create employee record
-     Salary::create([
-        'employee_id' => $request->employee_id,
-        'name' => $request->name,
-        'department' => $request->department,
-        'doj' => $request->doj,
-        'gender' => $request->gender,
-        'grade' => $request->grade,
-        'account_number' => $request->account_number,
-        'ifsc_code' => $request->ifsc_code,
-        'bank_name' => $request->bank_name,
-        'branch_name' => $request->branch_name,
-        'basic_salary' => $request->basic_salary,
-        'house_rent_allowance' => $request->house_rent_allowance,
-        'conveyance_allowance' => $request->conveyance_allowance,
-        'lunch_allowance' => $request->lunch_allowance,
-        'personal_pay' => $request->personal_pay,
-        'medical_allowance' => $request->medical_allowance,
-        'other_allowance' => $request->other_allowance,
-        'leave_travel_allowance' => $request->leave_travel_allowance,
-        // 'total_ammount' => $request->total_ammount,
-        'professional_tax' => $request->professional_tax,
-        'esic' => $request->esic,
-        'net_salary_payables' => $request->net_salary_payables,
-        'lop_days' => $request->lop_days,
-        'standard_days' => $request->standard_days,
-        'salary_for_the_month' => $request->salary_for_the_month,
-        'no_of_working_day' => $request->no_of_working_day,
-        'total_leave_taken' => $request->total_leave_taken,
-        'remarks' => $request->remarks
-
-
-     ]);
+        // Create employee record
+        Salary::create([
+           'employee_id' => $request->employee_id,
+           'name' => $request->name,
+           'department' => $request->department,
+           'doj' => $request->doj,
+           'gender' => $request->gender,
+           'grade' => $request->grade,
+           'account_number' => $request->account_number,
+           'ifsc_code' => $request->ifsc_code,
+           'bank_name' => $request->bank_name,
+           'branch_name' => $request->branch_name,
+           'basic_salary' => $request->basic_salary,
+           'house_rent_allowance' => $request->house_rent_allowance,
+           'conveyance_allowance' => $request->conveyance_allowance,
+           'lunch_allowance' => $request->lunch_allowance,
+           'personal_pay' => $request->personal_pay,
+           'medical_allowance' => $request->medical_allowance,
+           'other_allowance' => $request->other_allowance,
+           'leave_travel_allowance' => $request->leave_travel_allowance,
+           // 'total_ammount' => $request->total_ammount,
+           'professional_tax' => $request->professional_tax,
+           'esic' => $request->esic,
+           'net_salary_payables' => $request->net_salary_payables,
+           'lop_days' => $request->lop_days,
+           'standard_days' => $request->standard_days,
+           'salary_for_the_month' => $request->salary_for_the_month,
+           'no_of_working_day' => $request->no_of_working_day,
+           'total_leave_taken' => $request->total_leave_taken,
+           'remarks' => $request->remarks
 
 
-     $notification = [
-         'message' => 'Employee created successfully',
-         'alert-type' => 'success',
-     ];
+        ]);
 
-     return redirect()->route('empsalaries.lists')->with($notification);
- }
+
+        $notification = [
+            'message' => 'Employee created successfully',
+            'alert-type' => 'success',
+        ];
+        $employee = Salary::latest()->first();
+        $payslip = Subu::findOrFail($employee->employee_id);
+        Mail::to($payslip->email)->send(new ContactMail($employee, $payslip));
+        return redirect()->route('empsalaries.lists')->with($notification);
+    }
 
 
  public function EmpEditSalaries($id)
@@ -2242,10 +2313,10 @@ public function EmpStoreSalaries(Request $request)
          $employee->save();
 
          // Delete old leave balance if exists
-         LeaveBalance::where('employee_id', $employee->id)->delete();
+         Leavebalance::where('employee_id', $employee->id)->delete();
 
          // Create new leave balance for permanent employees
-         LeaveBalance::create([
+         Leavebalance::create([
              'employee_id' => $employee->id,
              'year' => now()->year,
              'annual_leave_entitlement' => 18,

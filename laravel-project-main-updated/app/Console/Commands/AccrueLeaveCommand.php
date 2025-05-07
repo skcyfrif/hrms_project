@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Models\Subu;
-use App\Models\LeaveBalance;
+use App\Models\Leavebalance;
 use Carbon\Carbon;
 
 class AccrueLeaveCommand extends Command
@@ -35,12 +35,12 @@ class AccrueLeaveCommand extends Command
             $monthlyEntitlement = 1.5;
             $proRatedEntitlement = round($monthsRemaining * $monthlyEntitlement, 1);
 
-            $leaveBalance = LeaveBalance::where('employee_id', $employee->id)
+            $leaveBalance = Leavebalance::where('employee_id', $employee->id)
                 ->where('year', $currentYear)
                 ->first();
 
             if (!$leaveBalance) {
-                LeaveBalance::create([
+                Leavebalance::create([
                     'employee_id' => $employee->id,
                     'year' => $currentYear,
                     'annual_leave_entitlement' => $proRatedEntitlement,

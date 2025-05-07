@@ -3,9 +3,9 @@
 @section('admin')
 <div class="page-content">
     <nav class="page-breadcrumb">
-        <ol class="breadcrumb">
+        {{-- <ol class="breadcrumb">
             <li class="breadcrumb-item active" aria-current="page">All HR Heads</li>
-        </ol>
+        </ol> --}}
     </nav>
 
     <div class="row">

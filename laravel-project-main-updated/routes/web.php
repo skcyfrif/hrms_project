@@ -370,8 +370,12 @@ Route::middleware(['auth' , 'role:manager'])->group(function(){
 
 
     // attendance status of employees
-    Route::get('/all_employee/attendance/status', [HrManagerController::class, 'AttendanceStatusinHrm'])->name('all.attendances');
    Route::get('/attendance-status-all_employee', [HrManagerController::class, 'AttendanceStatusinHrm'])->name('attendance.statusihnrm');
+
+
+   Route::get('/hrm/rm/attendances/status', [HrManagerController::class, 'viewRmAttendances'])->name('hrm.rm.attendance');
+   Route::get('/hrm/employee/attendances/status', [HrManagerController::class, 'viewEmployeeAttendances'])->name('hrm.employee.attendance');
+
 
     Route::get('/attendance/approve/{id}', [HRManagerController::class, 'approveAttendance'])->name('attendance.approve');
     Route::get('/attendance/absent/{id}', [HRManagerController::class, 'absentAttendance'])->name('attendance.absent');
@@ -525,13 +529,12 @@ Route::middleware(['auth' , 'role:user'])->group(function(){
     Route::get('/downloads/payslipss/{id}', [EmployeeController::class, 'DownPayslip'])->name('download.mypayslip');
     Route::get('/payslip/employee/views', [EmployeeController::class, 'EmpPayslipView'])->name('view.mypayslip');
 
-    // Route::get('payslip/employee/views/{id}', 'EmpSalaryView')->name('view.empsalaries');
+
 
 
     // Employee Pay Slip
     Route::get('/employee/payslip/', [EmployeeController::class, 'ListPaylip'])->name('payslip');
-    // Route::get('/employee/payslip/view', [EmployeeController::class, 'viewPayslip'])->name('view.payslip');
-    // Route::get('/employee/payslip/print', [EmployeeController::class, 'printPayslip'])->name('print.payslip');
+
 
     // Expense Claim Form
     Route::get('/employee/claim/', [EmployeeController::class, 'ListClaim'])->name('claim.form');
@@ -785,8 +788,13 @@ Route::post('/rmreject-leave', [RmController::class, 'rejectLeaveSubmitbyRm'])->
 
 
    // attendance status of employees in rm
-   Route::get('/reportmanager/all_employee/attendance/status', [RmController::class, 'AttendanceStatusinRm'])->name('all.attendanceinrm');
-   Route::get('/attendance-status-rm', [RmController::class, 'AttendanceStatusinRm'])->name('attendance.statusinrm');
+//    Route::get('/attendance-status-rm', [RmController::class, 'AttendanceStatusinRm'])->name('attendance.statusinrm');
+
+
+   Route::get('/rm/employee/attendances/status', [RmController::class, 'viewEmployeeAttendancesStatuses'])->name('rm.employee.attendance');
+
+
+
 
    Route::get('/reportmanager/attendance/approve/{id}', [RmController::class, 'approveAttendanceinRm'])->name('attendanceinrm.approve');
    Route::get('/reportmanager/attendance/absent/{id}', [RmController::class, 'absentAttendanceinRm'])->name('attendanceinrm.absent');

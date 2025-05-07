@@ -7,9 +7,9 @@
             <li class="breadcrumb-item">
                 <a href="{{ route('admin.hr_heads') }}">Back to HR Heads</a>
             </li>
-            <li class="breadcrumb-item active" aria-current="page">
+            {{-- <li class="breadcrumb-item active" aria-current="page">
                 Managers Created by {{ $hrHead->name }}
-            </li>
+            </li> --}}
         </ol>
     </nav>
 

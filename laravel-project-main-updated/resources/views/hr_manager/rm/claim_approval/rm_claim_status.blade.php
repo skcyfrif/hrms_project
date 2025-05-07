@@ -3,6 +3,7 @@
 
 
 <div class="page-content">
+    <h6 class="text-center">Report Managers Claim Approval</h6>
     <nav class="page-breadcrumb">
         <ol class="breadcrumb"></ol>
     </nav>

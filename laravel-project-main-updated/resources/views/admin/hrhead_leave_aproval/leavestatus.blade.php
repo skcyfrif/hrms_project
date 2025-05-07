@@ -8,6 +8,8 @@
         <div class="col-md-12 grid-margin stretch-card">
             <div class="card">
                 <div class="card-body">
+                    <h5 class="text-center">Leave approval Of All HR Heads</h5>
+
                     <div class="table-responsive">
                         <table id="dataTableExample" class="table">
                             <thead>

@@ -4,15 +4,18 @@
 
     <div class="page-content">
         <div class="row profile-body">
-            <!-- Middle Wrapper Start -->
+
             <div class="col-md-12 col-xl-12 middle-wrapper">
+                <button onclick="window.history.back();" class="btn btn-secondary">
+                    Back
+                </button>
                 <div class="row">
                     <div class="card shadow-sm border-0">
                         <div class="card-body p-5">
                             <h6 class="card-title text-center mb-4">Add or Edit Expense Claim</h6>
 
                             <form method="post" action="{{ route('store.hrmclaim') }}" class="forms-sample" id="employeeForm">
-                                {{-- <form method="post" action="#" class="forms-sample" id="employeeForm"> --}}
+
                                 @csrf
 
                                 <div class="row mb-4">
@@ -136,9 +139,7 @@
                                             <option value="hrhead"
                                                 {{ old('hrhead_approval') == 'hrhead' ? 'selected' : '' }}>Hr Head
                                             </option>
-                                            {{-- <option value="Reporting Manager"
-                                                {{ old('hrhead_approval') == 'Reporting Manager' ? 'selected' : '' }}>
-                                                Reporting Manager</option> --}}
+
                                             <option value="Others"
                                                 {{ old('hrhead_approval') == 'Others' ? 'selected' : '' }}>Others</option>
                                         </select>
@@ -172,13 +173,7 @@
                                 </div>
 
 
-                                {{-- <div class="col-md-6">
-                                    <label for="Photo" class="form-label @error('photo') is-invalid @enderror">Photo</label>
-                                    <input type="file" class="form-control" id="Photo" name="Photo">
-                                    @error('Photo')
-                                        <div class="text-danger mt-1">{{ $message }}</div>
-                                    @enderror
-                                </div> --}}
+
 
                                 <div class="d-flex justify-content-end">
                                     <button type="submit" class="btn btn-primary px-4 py-2">Save Changes</button>
@@ -188,7 +183,7 @@
                     </div>
                 </div>
             </div>
-            <!-- Middle Wrapper End -->
+
         </div>
     </div>
 @endsection

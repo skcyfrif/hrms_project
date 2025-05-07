@@ -1,6 +1,8 @@
 @extends('employee.employee_dashboard')
 @section('employee')
     <div class="page-content">
+    <h6 class="text-center">Leave status of {{ $employeeName }}</h6>
+
 
         <nav class="page-breadcrumb">
             <ol class="breadcrumb">

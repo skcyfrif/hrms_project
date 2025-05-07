@@ -5,6 +5,9 @@
     <div class="page-content">
         <div class="row profile-body">
             <div class="col-md-12 col-xl-12 middle-wrapper">
+                <button onclick="window.history.back();" class="btn btn-secondary">
+                    Back
+                </button>
                 <div class="row">
                     <div class="card shadow-sm border-0">
                         <div class="card-body p-5">
@@ -46,18 +49,20 @@
                                     <div class="col-md-6">
                                         <label for="leave_from" class="form-label">Leave From</label>
                                         <input type="date" class="form-control" id="leave_from" name="leave_from"
-                                            min="{{ now()->toDateString() }}">
+                                            min="{{ now()->toDateString() }}"
+                                            value="{{ old('leave_from') }}">
                                     </div>
                                     <div class="col-md-6">
                                         <label for="leave_to" class="form-label">Leave To</label>
                                         <input type="date" class="form-control" id="leave_to" name="leave_to"
-                                            min="{{ now()->toDateString() }}">
+                                            min="{{ now()->toDateString() }}"
+                                            value="{{ old('leave_to') }}">
                                     </div>
                                 </div>
                                 <div class="row mb-4">
                                     <div class="col-md-6">
                                         <label for="total_days" class="form-label">Total Days</label>
-                                        <input type="text" class="form-control" id="total_days" name="total_days"
+                                        <input type="text" class="form-control" id="total_days" name="total_days" value="{{ old('total_days') }}"
                                             readonly>
                                     </div>
 

@@ -7,10 +7,15 @@
     <div class="row profile-body">
         <!-- Middle Wrapper Start -->
         <div class="col-md-12 col-xl-12 middle-wrapper">
+            {{-- <li class="breadcrumb-item"> --}}
+                <button onclick="window.history.back();" class="btn btn-secondary">
+                    Back
+                </button>
+            {{-- </li> --}}
             <div class="row">
                 <div class="card shadow-sm border-0">
                     <div class="card-body p-5">
-                        <h6 class="card-title text-center mb-4">Add or Edit Employee</h6>
+                        <h6 class="card-title text-center mb-4">Add or Edit Hr Manager Details</h6>
 
                         <!-- Form Start -->
                         <form method="POST" action="{{ route('store.hrmanager') }}" class="forms-sample" id="employeeForm" enctype="multipart/form-data">

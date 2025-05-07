@@ -4,7 +4,7 @@
 
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
-            <a href="{{route('add.hrmanager')}}" class="btn btn-inverse-info">Add Employee</a>
+            <a href="{{route('add.hrmanager')}}" class="btn btn-inverse-info">Add Hr Manager</a>
         </ol>
     </nav>
 

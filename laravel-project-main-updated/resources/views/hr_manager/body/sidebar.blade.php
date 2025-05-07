@@ -37,18 +37,7 @@
                     <span class="link-title">Employee Directory</span>
                 </a>
 
-                {{-- <a href="{{route('reportmanager.list')}}" class="nav-link">
-                    <i class="link-icon" data-feather="box"></i>
-                    <span class="link-title">Add Report Manager</span>
-                </a> --}}
-                {{-- <a href="{{route('approval.status')}}" class="nav-link">
-                    <i class="link-icon" data-feather="box"></i>
-                    <span class="link-title">Employees Leave Status</span>
-                </a> --}}
-                {{-- <a href="{{route('all.attendances')}}" class="nav-link">
-                    <i class="link-icon" data-feather="box"></i>
-                    <span class="link-title">Attendance Status</span>
-                </a> --}}
+
                 <li class="nav-item">
                     <a href="#" class="nav-link" data-bs-toggle="collapse" data-bs-target="#musterRollMenu" aria-expanded="false">
                         <i class="link-icon" data-feather="box"></i>
@@ -56,9 +45,7 @@
                         <i class="menu-arrow"></i>
                     </a>
                     <ul class="collapse" id="musterRollMenu">
-                        <li class="nav-item">
-                            <a href="{{ route('all.attendances') }}" class="nav-link">Employee Attendance</a>
-                        </li>
+
                         <li class="nav-item">
                             <a href="{{ route('empsalaries.lists') }}" class="nav-link">Salary Structure</a>
                         </li>
@@ -130,6 +117,20 @@
                     <i class="link-icon" data-feather="box"></i>
                     <span class="link-title">Rejected candidates</span>
                 </a>
+            </li>
+
+            <li class="nav-item nav-category">Attendance Status</li>
+                <a href="{{route('hrm.rm.attendance')}}" class="nav-link">
+                {{-- <a href="#" class="nav-link"> --}}
+                    <i class="link-icon" data-feather="box"></i>
+                    <span class="link-title">Report Manager</span>
+                </a>
+                <a href="{{route('hrm.employee.attendance')}}" class="nav-link">
+                    {{-- <a href="#" class="nav-link"> --}}
+                        <i class="link-icon" data-feather="box"></i>
+                        <span class="link-title">Employee</span>
+                    </a>
+
             </li>
 
             <li class="nav-item nav-category">Pending Approval</li>

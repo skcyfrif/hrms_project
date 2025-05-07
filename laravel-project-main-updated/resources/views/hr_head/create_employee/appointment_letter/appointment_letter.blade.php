@@ -2,8 +2,10 @@
 @section('hr_head')
 <div class="container">
     <div class="row justify-content-center">
+
         <div class="col-md-8">
             <div class="card">
+
                 <div class="card-body">
 
                     <br>
@@ -75,6 +77,9 @@
                     <br>
                     <br>
                     <button onclick="window.print();" class="a">Print Appointment Letter</button>
+                    <button onclick="window.history.back();" class="btn btn-secondary">
+                        Back
+                    </button>
                 </div>
             </div>
         </div>
