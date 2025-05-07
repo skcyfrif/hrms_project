@@ -35,7 +35,7 @@
                 </a>
             </li>
 
-            <li class="nav-item">
+            {{-- <li class="nav-item">
                 <a class="nav-link" data-bs-toggle="collapse" href="#attendanceMenu" role="button"
                    aria-expanded="false" aria-controls="attendanceMenu">
                     <i class="link-icon" data-feather="clock"></i>
@@ -70,9 +70,36 @@
                         </li>
                     </ul>
                 </div>
+            </li> --}}
+
+
+
+
+            <li class="nav-item nav-category">Attendance Status</li>
+            <li class="nav-item">
+                <a href="{{ route('admin.hr_headsattendances') }}" class="nav-link">
+                    <i class="link-icon" data-feather="calendar"></i>
+                    <span class="link-title">HR Head</span>
+                </a>
+                <a href="{{ route('admin.hr_managersattendances') }}" class="nav-link">
+                    <i class="link-icon" data-feather="calendar"></i>
+                    <span class="link-title">HR Manager</span>
+                </a>
+                <a href="{{ route('admin.report_managersattendances') }}" class="nav-link">
+                    <i class="link-icon" data-feather="calendar"></i>
+                    <span class="link-title">Report Manager</span>
+                </a>
+                <a href="{{ route('admin.employeesattendances') }}" class="nav-link">
+                    <i class="link-icon" data-feather="calendar"></i>
+                    <span class="link-title">Employees</span>
+                </a>
             </li>
 
-            <li class="nav-item">
+
+
+
+
+            {{-- <li class="nav-item">
                 <a class="nav-link" data-bs-toggle="collapse" href="#leaveMenu" role="button"
                    aria-expanded="false" aria-controls="leaveMenu">
                     <i class="link-icon" data-feather="file-text"></i>
@@ -107,9 +134,35 @@
                         </li>
                     </ul>
                 </div>
+            </li> --}}
+
+
+
+            <li class="nav-item nav-category">Leave Status</li>
+            <li class="nav-item">
+                <a href="{{ route('admin.hr_headsleaves') }}" class="nav-link">
+                    <i class="link-icon" data-feather="check-square"></i>
+                    <span class="link-title">HR Head</span>
+                </a>
+                <a href="{{ route('admin.hrmleaves') }}" class="nav-link">
+                    <i class="link-icon" data-feather="check-square"></i>
+                    <span class="link-title">HR Manager</span>
+                </a>
+                <a href="{{ route('admin.rmleaves') }}" class="nav-link">
+                    <i class="link-icon" data-feather="check-square"></i>
+                    <span class="link-title">Report Manager</span>
+                </a>
+                <a href="{{ route('admin.employeeleaves') }}" class="nav-link">
+                    <i class="link-icon" data-feather="check-square"></i>
+                    <span class="link-title">Employees</span>
+                </a>
             </li>
 
-            <li class="nav-item">
+
+
+
+
+            {{-- <li class="nav-item">
                 <a class="nav-link" data-bs-toggle="collapse" href="#claimMenu" role="button"
                    aria-expanded="false" aria-controls="claimMenu">
                     <i class="link-icon" data-feather="dollar-sign"></i>
@@ -144,7 +197,30 @@
                         </li>
                     </ul>
                 </div>
+            </li> --}}
+
+
+            <li class="nav-item nav-category">Claim Status</li>
+            <li class="nav-item">
+                <a href="{{ route('admin.hr_headsclaim') }}" class="nav-link">
+                    <i class="link-icon" data-feather="check-square"></i>
+                    <span class="link-title">HR Head</span>
+                </a>
+                <a href="{{ route('admin.hrmclaim') }}" class="nav-link">
+                    <i class="link-icon" data-feather="check-square"></i>
+                    <span class="link-title">HR Manager</span>
+                </a>
+                <a href="{{ route('admin.rmclaim') }}" class="nav-link">
+                    <i class="link-icon" data-feather="check-square"></i>
+                    <span class="link-title">Report Manager</span>
+                </a>
+                <a href="{{ route('admin.employeeclaim') }}" class="nav-link">
+                    <i class="link-icon" data-feather="check-square"></i>
+                    <span class="link-title">Employees</span>
+                </a>
             </li>
+
+
 
             <li class="nav-item nav-category">Leave Approval</li>
             <li class="nav-item">
