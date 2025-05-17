@@ -14,7 +14,8 @@
                                     <select name="month" class="form-control" required>
                                         <option value="">-- Select Month --</option>
                                         @foreach (range(1, 12) as $month)
-                                            <option value="{{ $month }}" {{ request('month') == $month ? 'selected' : '' }}>
+                                            <option value="{{ $month }}"
+                                                {{ request('month') == $month ? 'selected' : '' }}>
                                                 {{ \Carbon\Carbon::create()->month($month)->format('F') }}
                                             </option>
                                         @endforeach
@@ -25,7 +26,8 @@
                                     <select name="year" class="form-control" required>
                                         <option value="">-- Select Year --</option>
                                         @for ($year = 2019; $year <= now()->year; $year++)
-                                            <option value="{{ $year }}" {{ request('year') == $year ? 'selected' : '' }}>
+                                            <option value="{{ $year }}"
+                                                {{ request('year') == $year ? 'selected' : '' }}>
                                                 {{ $year }}
                                             </option>
                                         @endfor
@@ -52,42 +54,30 @@
                                 </thead>
                                 <tbody>
                                     @foreach ($hrHeads as $key => $head)
-                                        <tr>
-                                            <td>{{ $key + 1 }}</td>
-                                            <td>{{ $head->employee_id }}</td>
-                                            <td>{{ $head->name }}</td>
-                                            <td>{{ $head->email }}</td>
-                                            <td>{{ $head->user_role }}</td>
-                                            <td>
-                                                @if ($head->leave)
-                                                    {{ $head->leave->leave_from }}
-                                                @else
-                                                    - - -
-                                                @endif
-                                            </td>
-                                            <td>
-                                                @if ($head->leave)
-                                                    {{ $head->leave->leave_to }}
-                                                @else
-                                                    - - -
-                                                @endif
-                                            </td>
-                                            <td>
-                                                @if ($head->leave)
-                                                    @if ($head->leave->hr_status === 'hrapprove')
+                                        @foreach ($head->leave as $leave)
+                                            <!-- Loop over all leaves -->
+                                            <tr>
+                                                <td>{{ $key + 1 }}</td>
+                                                <td>{{ $head->employee_id }}</td>
+                                                <td>{{ $head->name }}</td>
+                                                <td>{{ $head->email }}</td>
+                                                <td>{{ $head->user_role }}</td>
+                                                <td>{{ optional($leave)->leave_from ? \Carbon\Carbon::parse($leave->leave_from)->format('d/m/Y') : '- - -' }}
+                                                </td>
+                                                <td>{{ optional($leave)->leave_to ? \Carbon\Carbon::parse($leave->leave_to)->format('d/m/Y') : '- - -' }}
+                                                </td>
+                                                <td>
+                                                    @if ($leave->hr_status === 'hrapprove')
                                                         <span class="badge bg-success fs-6 px-3 py-2">Approved</span>
-                                                    @elseif($head->leave->hr_status === 'hrreject')
+                                                    @elseif($leave->hr_status === 'hrreject')
                                                         <span class="badge bg-danger fs-6 px-3 py-2">Rejected</span>
                                                     @else
                                                         <span
                                                             class="badge bg-warning text-dark fs-6 px-3 py-2">Pending</span>
                                                     @endif
-                                                @else
-                                                    <span class="badge bg-info fs-6 px-3 py-2">No Leave Applied</span>
-                                                @endif
-                                            </td>
-
-                                        </tr>
+                                                </td>
+                                            </tr>
+                                        @endforeach
                                     @endforeach
                                 </tbody>
                             </table>

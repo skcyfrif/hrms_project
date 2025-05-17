@@ -15,6 +15,20 @@
                             <p class="text-xl">Pay Slip for the Month of <span
                                     class="font-semibold">{{ strtoupper(now()->format('F Y')) }}</span></p>
                         </div>
+
+                        <div>
+                            <button onclick="window.history.back();" class="btn btn-secondary">
+                                Back
+                            </button>
+                        </div>
+
+
+                        <div style="position: relative;">
+                            <div style="position: absolute; top: -35px; right: 10px;">
+                                <button onclick="window.print();" class="a">Print payslip</button>
+                            </div>
+                        </div>
+
                         <br>
                         <br>
                         <br>
@@ -199,7 +213,6 @@
                         <br>
                         <br>
 
-                        <button onclick="window.print();" class="a">Print payslip</button>
                     </div>
                 </div>
             </div>
@@ -232,6 +245,10 @@
             /* Hide print button during print */
             .print-button {
                 display: none;
+            }
+
+            .btn-secondary {
+            display: none !important;
             }
 
             /* Adjust the content of the payslip */

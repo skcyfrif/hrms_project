@@ -99,9 +99,13 @@
                 <div class="card shadow-sm bg-light">
                     <div class="card-header bg-danger text-white">
 
-                        <a href="{{ route('attendance.statusihnrm', ['date' => now()->toDateString()]) }}"
+                        <a href="{{ route('hrm.rm.attendance', ['date' => now()->toDateString()]) }}"
                             class="btn btn-primary">
-                            Attendance Snapshot ({{ $presentCount }})
+                            Attendance Snapshot of Report Managers ({{ $presentCount }})
+                        </a>
+                        <a href="{{ route('hrm.employee.attendance', ['date' => now()->toDateString()]) }}"
+                            class="btn btn-primary">
+                            Attendance Snapshot of Employees ({{ $presentCount }})
                         </a>
                     </div>
                     <div class="card-body">

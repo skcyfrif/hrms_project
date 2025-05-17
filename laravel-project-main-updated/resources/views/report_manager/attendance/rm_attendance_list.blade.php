@@ -4,7 +4,6 @@
 
         <nav class="page-breadcrumb">
             <ol class="breadcrumb">
-                {{-- <a href="#" class="btn btn-inverse-info">Add Attendance of Employee</a> --}}
                 <a href="{{ route('add.rmattendance') }}" class="btn btn-inverse-info">Add Attendance of Reporting Manager</a>
             </ol>
         </nav>
@@ -13,7 +12,6 @@
             <div class="col-md-12 grid-margin stretch-card">
                 <div class="card">
                     <div class="card-body">
-                        <h6 class="card-title">All Employee</h6>
                         <div class="table-responsive">
                             <form method="GET" action="{{ route('rm.attendance.list') }}" class="row mb-4">
                                 <div class="col-md-3">
@@ -67,14 +65,13 @@
                                             <td>{{ $employee->employee_id }}</td>
                                             <td>{{ $item->name }}</td>
                                             <td>{{ \Carbon\Carbon::parse($item->date)->format('d/M/Y') }}</td>
-                                            <td>{{ \Carbon\Carbon::parse($item->check_in_time)->format('h:i A') ?? '---' }}</td>
+                                            <td>{{ \Carbon\Carbon::parse($item->check_in_time)->format('h:i A') ?? '---' }}
+                                            </td>
                                             <td>{{ $item->status }}</td>
                                             <td>
                                                 {{-- <a href="{{route('edit.employeeattendance' , $item->id)}}" class="btn btn-inverse-warning"> Edit</a> --}}
                                                 <a href="{{ route('delete.rmattendance', $item->id) }}"
                                                     class="btn btn-inverse-danger" id="delete"> Delete</a>
-                                                {{-- <a href="{{route('view.employeeattendance' , $item->id)}}" class="btn btn-inverse-danger" style="background-color: #28a745; color: white; border: 1.5px solid #155724;"> View</a>
-                        <a href="{{route('view.employeeattendance' , $item->id)}}" class="btn btn-inverse-danger" id="delete"> View</a> --}}
                                             </td>
 
                                         </tr>

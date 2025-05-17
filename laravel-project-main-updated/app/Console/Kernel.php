@@ -18,6 +18,7 @@ class Kernel extends ConsoleKernel
     {
         // Schedule the leave accrue command to run on the 1st of every month at 1:00 AM
         $schedule->command('leave:accrue')->monthlyOn(1, '01:00');
+        $schedule->command('payroll:generate')->monthlyOn(1, '1:00');
     }
 
     /**

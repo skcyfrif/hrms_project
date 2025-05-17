@@ -52,4 +52,12 @@ class Employeeattendance extends Model
         return $this->belongsTo(Subu::class, 'employee_id', 'id');
     }
 
+
+
+// public function user()
+//     {
+//         // Assuming 'user_id' is the foreign key in employeeattendances table
+//         return $this->belongsTo(User::class, 'user_id');
+//     }
+
 }

@@ -31,16 +31,20 @@
                                 <input type="text" class="form-control" value="{{ $test->name }}" readonly>
                             </div>
 
+                           
+
+
                             <div class="col-md-4 mb-3">
                                 <label for="photo" class="form-label">Photo</label>
 
                                 <!-- Show the image if available -->
                                 @if($test->photo)
-                                    <img src="{{ asset('storage/'.$test->photo) }}" alt="Photo" class="img-thumbnail" style="max-width: 150px; max-height: 150px;">
+                                    <img src="{{ asset($test->photo) }}" alt="Employee Photo" style="width: 150px; height: auto;">
                                 @else
                                     <p>No photo available</p>
                                 @endif
                             </div>
+
 
 
                             <div class="col-md-4 mb-3">

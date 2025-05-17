@@ -4,197 +4,136 @@
 
     <div class="page-content">
         <div class="row profile-body">
-            <!-- Middle Wrapper Start -->
             <div class="col-md-12 col-xl-12 middle-wrapper">
+                <button onclick="window.history.back();" class="btn btn-secondary">
+                    Back
+                </button>
                 <div class="row">
                     <div class="card shadow-sm border-0">
                         <div class="card-body p-5">
-                            <h6 class="card-title text-center mb-4">Add Leave</h6>
+                            <h6 class="card-title text-center mb-4">Add or Edit Leave</h6>
+
+                            @if ($errors->has('leave_range'))
+                                <div class="alert alert-danger mb-3">
+                                    {{ $errors->first('leave_range') }}
+                                </div>
+                            @endif
+
 
                             <form method="post" action="{{ route('store.hrmanagerleave') }}" class="forms-sample"
-                                id="employeeForm" enctype="multipart/form-data">
-                                {{-- <form method="post" action="#" class="forms-sample" id="employeeForm"> --}}
+                                enctype="multipart/form-data">
                                 @csrf
 
                                 <div class="row mb-4">
                                     <div class="col-md-6">
-                                        <label for="employee_id"
-                                            class="form-label @error('employee_id') is-invalid @enderror">Employee
-                                            ID</label>
-                                        {{-- <input type="text" class="form-control" id="employee_id" name="employee_id" value="{{ old('employee_id') }}"> --}}
+                                        <label for="employee_id" class="form-label">Employee ID</label>
                                         <input type="hidden" class="form-control" id="employee_id" name="employee_id"
-                                            value="{{ old('employee_id', $employee->id) }}" readonly>
-                                        <input type="text" class="form-control" id="employee_id"
-                                            value="{{ old('employee_id', $employee->employee_id) }}" readonly>
-                                        @error('employee_id')
-                                            <div class="text-danger mt-1">{{ $message }}</div>
-                                        @enderror
+                                            value="{{ $employee->id }}">
+                                        <input type="text" class="form-control" value="{{ $employee->employee_id }}"
+                                            readonly>
                                     </div>
-
-
                                     <div class="col-md-6">
-                                        <label for="name"
-                                            class="form-label @error('name') is-invalid @enderror">Name</label>
-                                        {{-- <input type="text" class="form-control" id="name" name="name" value="{{ old('name') }}"> --}}
+                                        <label for="name" class="form-label">Name</label>
                                         <input type="text" class="form-control" id="name" name="name"
-                                            value="{{ old('name', $user->name) }}" readonly>
-                                        @error('name')
-                                            <div class="text-danger mt-1">{{ $message }}</div>
-                                        @enderror
+                                            value="{{ $user->name }}" readonly>
                                     </div>
                                 </div>
 
                                 <div class="row mb-4">
                                     <div class="col-md-6">
-                                        <label for="designation"
-                                            class="form-label @error('designation') is-invalid @enderror">Designation</label>
-                                        {{-- <input type="text" class="form-control" id="designation" name="designation" value="{{ old('designation') }}"> --}}
+                                        <label for="designation" class="form-label">Designation</label>
                                         <input type="text" class="form-control" id="designation" name="designation"
-                                            value="{{ old('designation', $employee->designation) }}" readonly>
-                                        @error('designation')
-                                            <div class="text-danger mt-1">{{ $message }}</div>
-                                        @enderror
+                                            value="{{ $employee->designation }}" readonly>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="department"
-                                            class="form-label @error('department') is-invalid @enderror">Department</label>
-                                        {{-- <input type="text" class="form-control" id="department" name="department" value="{{ old('department') }}"> --}}
+                                        <label for="department" class="form-label">Department</label>
                                         <input type="text" class="form-control" id="department" name="department"
-                                            value="{{ old('department', $employee->department) }}" readonly>
-                                        @error('department')
-                                            <div class="text-danger mt-1">{{ $message }}</div>
-                                        @enderror
+                                            value="{{ $employee->department }}" readonly>
                                     </div>
                                 </div>
 
                                 <div class="row mb-4">
                                     <div class="col-md-6">
-                                        <label for="leave_from"
-                                            class="form-label @error('leave_from') is-invalid @enderror">Leave From</label>
+                                        <label for="leave_from" class="form-label">Leave From</label>
                                         <input type="date" class="form-control" id="leave_from" name="leave_from"
-                                            value="{{ old('leave_from') }}" min="{{ now()->toDateString() }}">
-                                        @error('leave_from')
-                                            <div class="text-danger mt-1">{{ $message }}</div>
-                                        @enderror
+                                            min="{{ now()->toDateString() }}" value="{{ old('leave_from') }}">
                                     </div>
-
                                     <div class="col-md-6">
-                                        <label for="leave_to"
-                                            class="form-label @error('leave_to') is-invalid @enderror">Leave To</label>
+                                        <label for="leave_to" class="form-label">Leave To</label>
                                         <input type="date" class="form-control" id="leave_to" name="leave_to"
-                                            value="{{ old('leave_to') }}" min="{{ now()->toDateString() }}">
-                                        @error('leave_to')
-                                            <div class="text-danger mt-1">{{ $message }}</div>
-                                        @enderror
+                                            min="{{ now()->toDateString() }}" value="{{ old('leave_to') }}">
+                                        <small id="date-error" class="text-danger" style="display: none;"></small>
+
                                     </div>
                                 </div>
-
-                                <script>
-                                    document.addEventListener('DOMContentLoaded', function() {
-                                        let leaveFrom = document.getElementById('leave_from');
-                                        let leaveTo = document.getElementById('leave_to');
-
-                                        // Set the minimum date for leave_from (today)
-                                        let today = new Date().toISOString().split('T')[0];
-                                        leaveFrom.setAttribute('min', today);
-                                        leaveTo.setAttribute('min', today);
-
-                                        // Update leave_to's min date based on leave_from's selected date
-                                        leaveFrom.addEventListener('change', function() {
-                                            leaveTo.setAttribute('min', this.value);
-                                        });
-                                    });
-                                </script>
-
                                 <div class="row mb-4">
                                     <div class="col-md-6">
-                                        <label for="total_days"
-                                            class="form-label @error('total_days') is-invalid @enderror">Total Days</label>
+                                        <label for="total_days" class="form-label">Total Days</label>
                                         <input type="text" class="form-control" id="total_days" name="total_days"
                                             value="{{ old('total_days') }}" readonly>
-                                        @error('total_days')
-                                            <div class="text-danger mt-1">{{ $message }}</div>
-                                        @enderror
+                                    </div>
+
+                                    <!-- Hidden input to store employee type -->
+                                    <input type="hidden" id="employment_type" value="{{ $employee->employment_type }}">
+
+                                    <div class="col-md-6">
+                                        <label for="reason" class="form-label">Leave Type</label>
+                                        <select class="form-control" id="reason" name="reason">
+                                            <option value="" disabled selected>Select Leave Type</option>
+                                            <!-- Options will be added via JavaScript -->
+                                        </select>
                                     </div>
 
                                     <script>
-                                        document.addEventListener('DOMContentLoaded', function() {
-                                            // Select the date fields and the total_days input
-                                            const leaveFrom = document.getElementById('leave_from');
-                                            const leaveTo = document.getElementById('leave_to');
-                                            const totalDays = document.getElementById('total_days');
+                                        document.addEventListener("DOMContentLoaded", function() {
+                                            const empType = document.getElementById('employment_type').value;
+                                            const reasonSelect = document.getElementById('reason');
 
-                                            // Function to calculate the total number of days
-                                            function calculateTotalDays() {
-                                                const fromDate = new Date(leaveFrom.value);
-                                                const toDate = new Date(leaveTo.value);
+                                            const allOptions = [{
+                                                    value: 'PL',
+                                                    label: 'PL'
+                                                },
+                                                {
+                                                    value: 'SL',
+                                                    label: 'SL'
+                                                },
+                                                {
+                                                    value: 'LOP',
+                                                    label: 'LOP'
+                                                },
+                                            ];
 
-                                                // Ensure both dates are valid before calculating
-                                                if (fromDate && toDate && leaveFrom.value && leaveTo.value) {
-                                                    const timeDiff = toDate - fromDate;
-                                                    const days = timeDiff / (1000 * 3600 * 24) + 1; // Add 1 to include both start and end dates
+                                            let optionsToShow = [];
 
-                                                    if (days >= 0) {
-                                                        totalDays.value = days;
-                                                    } else {
-                                                        totalDays.value = 0; // If 'Leave From' is after 'Leave To', set to 0
-                                                    }
-                                                } else {
-                                                    totalDays.value = ''; // Clear if dates are not valid
-                                                }
+                                            if (empType === 'permanent') {
+                                                optionsToShow = allOptions;
+                                            } else {
+                                                optionsToShow = [allOptions.find(opt => opt.value === 'LOP')];
                                             }
 
-                                            // Event listeners to recalculate total days when dates are changed
-                                            leaveFrom.addEventListener('input', calculateTotalDays);
-                                            leaveTo.addEventListener('input', calculateTotalDays);
+                                            // Clear existing options except the first
+                                            reasonSelect.length = 1;
+
+                                            // Add allowed options
+                                            optionsToShow.forEach(opt => {
+                                                const option = new Option(opt.label, opt.value);
+                                                reasonSelect.add(option);
+                                            });
                                         });
                                     </script>
-
-                                    <div class="col-md-6">
-                                        <label for="reason"
-                                            class="form-label @error('reason') is-invalid @enderror">Reason</label>
-                                        <select class="form-control" id="reason" name="reason">
-                                            <option value="" disabled selected>Select Reason</option>
-                                            <option value="PL" {{ old('reason') == 'PL' ? 'selected' : '' }}>PL
-                                                (Privilege Leave)</option>
-                                            <option value="Seek Leave"
-                                                {{ old('reason') == 'Seek Leave' ? 'selected' : '' }}>Seek Leave</option>
-                                            <option value="Casual Leave"
-                                                {{ old('reason') == 'Casual Leave' ? 'selected' : '' }}>Casual Leave
-                                            </option>
-                                            <option value="LOP" {{ old('reason') == 'LOP' ? 'selected' : '' }}>LOP (Loss
-                                                of Pay)</option>
-                                            <option value="Transit Leave"
-                                                {{ old('reason') == 'Transit Leave' ? 'selected' : '' }}>Transit Leave
-                                            </option>
-                                            <option value="Others" {{ old('reason') == 'Others' ? 'selected' : '' }}>Others
-                                            </option>
-                                        </select>
-                                        @error('reason')
-                                            <div class="text-danger mt-1">{{ $message }}</div>
-                                        @enderror
-                                    </div>
                                 </div>
-
                                 <div class="row mb-4">
+
+
                                     <div class="col-md-6">
-                                        <label for="remarks"
-                                            class="form-label @error('remarks') is-invalid @enderror">Remarks</label>
+                                        <label for="remarks" class="form-label">Remarks</label>
                                         <input type="text" class="form-control" id="remarks" name="remarks"
                                             value="{{ old('remarks', $user->remarks) }}">
-                                        @error('remarks')
-                                            <div class="text-danger mt-1">{{ $message }}</div>
-                                        @enderror
                                     </div>
 
                                     <div class="col-md-6">
-                                        <label for="upload"
-                                            class="form-label @error('upload') is-invalid @enderror">Upload</label>
-                                        <input type="file" class="form-control" id="upload" name="upload"
-                                            value="{{ old('upload') }}">
-                                        @error('upload')
-                                            <div class="text-danger mt-1">{{ $message }}</div>
-                                        @enderror
+                                        <label for="upload" class="form-label">Upload</label>
+                                        <input type="file" class="form-control" id="upload" name="upload">
                                     </div>
                                 </div>
 
@@ -206,7 +145,41 @@
                     </div>
                 </div>
             </div>
-            <!-- Middle Wrapper End -->
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const leaveFrom = document.getElementById('leave_from');
+            const leaveTo = document.getElementById('leave_to');
+            const totalDays = document.getElementById('total_days');
+            const dateError = document.getElementById('date-error');
+
+            function validateDates() {
+                const fromDateValue = leaveFrom.value;
+                const toDateValue = leaveTo.value;
+
+                if (fromDateValue && toDateValue) {
+                    const fromDate = new Date(fromDateValue);
+                    const toDate = new Date(toDateValue);
+
+                    if (toDate < fromDate) {
+                        totalDays.value = '';
+                        dateError.style.display = 'block';
+                        dateError.textContent = '"Leave To" date cannot be earlier than "Leave From" date.';
+                    } else {
+                        const days = Math.max(0, (toDate - fromDate) / (1000 * 3600 * 24) + 1);
+                        totalDays.value = days;
+                        dateError.style.display = 'none';
+                    }
+                } else {
+                    totalDays.value = '';
+                    dateError.style.display = 'none';
+                }
+            }
+
+            leaveFrom.addEventListener('input', validateDates);
+            leaveTo.addEventListener('input', validateDates);
+        });
+    </script>
 @endsection

@@ -50,7 +50,7 @@
                                         <th>status</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                {{-- <tbody>
                                     @foreach ($hrHeads as $key => $head)
                                         <tr>
                                             <td>{{ $key + 1 }}</td>
@@ -83,7 +83,55 @@
 
                                         </tr>
                                     @endforeach
+                                </tbody> --}}
+
+
+
+                                <tbody>
+                                    @php $sl = 1; @endphp
+                                    @forelse ($hrHeads as $head)
+                                        @if (!empty($head->claim) && $head->claim->count())
+                                            @foreach ($head->claim as $claims)
+                                                <tr>
+                                                    <td>{{ $sl++ }}</td>
+                                                    <td>{{ $head->employee_id }}</td>
+                                                    <td>{{ $head->name }}</td>
+                                                    <td>{{ $head->email }}</td>
+                                                    <td>{{ $head->user_role }}</td>
+                                                    <td>{{ \Carbon\Carbon::parse($claims->claim_date)->format('d/m/Y') }}
+                                                    </td>
+                                                    <td>
+                                                        @if ($claims->status === 'approve')
+                                                            <span class="badge bg-success fs-6 px-3 py-2">Approved</span>
+                                                        @elseif ($claims->status === 'reject')
+                                                            <span class="badge bg-danger fs-6 px-3 py-2">Rejected</span>
+                                                        @else
+                                                            <span
+                                                                class="badge bg-warning text-dark fs-6 px-3 py-2">Pending</span>
+                                                        @endif
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        @else
+                                            <tr>
+                                                <td>{{ $sl++ }}</td>
+                                                <td>{{ $head->employee_id }}</td>
+                                                <td>{{ $head->name }}</td>
+                                                <td>{{ $head->email }}</td>
+                                                <td>{{ $head->user_role }}</td>
+                                                <td>- - -</td>
+                                                <td><span class="badge bg-info fs-6 px-3 py-2">No Claim Applied</span></td>
+                                            </tr>
+                                        @endif
+                                    @empty
+                                        <tr>
+                                            <td colspan="7" class="text-center">No claims found for the selected month
+                                                and year.</td>
+                                        </tr>
+                                    @endforelse
                                 </tbody>
+
+
                             </table>
                         </div>
                     </div>

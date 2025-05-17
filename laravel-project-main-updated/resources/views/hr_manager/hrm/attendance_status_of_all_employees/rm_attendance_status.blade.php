@@ -34,15 +34,23 @@
                                 </div>
                             </form>
 
+                            @php
+                                $currentMonth = now()->format('m');
+                            @endphp
+                            <div class="mb-3 text-end">
+                                <a href="{{ route('hrm.download.rmattendance', ['type' => 'monthly', 'month' => $currentMonth]) }}"
+                                    class="btn btn-success">
+                                    Download Current Month Report
+                                </a>
+                            </div>
+
+
                             <table id="dataTableExample" class="table">
                                 <thead>
                                     <tr>
-                                        <th>#</th>
+                                        <th>Date</th>
                                         <th>Employee ID</th>
                                         <th>Name</th>
-                                        {{-- <th>Email</th> --}}
-                                        <th>Role</th>
-                                        <th>Date</th>
                                         <th>Attendance Status</th>
                                         <th>Check-in Time</th>
                                         <th>System Time</th>
@@ -61,24 +69,51 @@
                                                     : $attendance->status ?? 'Present';
                                             @endphp
                                             <tr>
-                                                <td>{{ $loop->parent->iteration }}.{{ $key + 1 }}</td>
+                                                <td>{{ \Carbon\Carbon::parse($attendance->date)->format('d/M/Y') }}</td>
                                                 <td>{{ $head->employee_id }}</td>
                                                 <td>{{ $head->name }}</td>
-                                                {{-- <td>{{ $head->email }}</td> --}}
-                                                <td>{{ $head->user_role }}</td>
-                                                <td>{{ \Carbon\Carbon::parse($attendance->date)->format('d/M/Y') }}</td>
-                                                <td>{{ $status }}</td>
-                                                <td>{{ \Carbon\Carbon::parse($attendance->check_in_time)->format('h:i A') ?? '---' }}
-                                                </td>
-                                                <td>{{ \Carbon\Carbon::parse($attendance->created_at)->format('H:i') }}
-                                                </td>
-                                                <td>{{ $attendance->manager_approval_status }}</td>
                                                 <td>
-                                                    <a href="{{ route('attendance.approve', $attendance->id) }}"
-                                                        class="btn btn-success">Present</a>
-                                                    <a href="{{ route('attendance.absent', $attendance->id) }}"
-                                                        class="btn btn-danger">Absent</a>
+                                                    @if ($attendance->status === 'On Leave')
+                                                        <span class="badge bg-info text-dark">On Leave</span>
+                                                    @else
+                                                        {{ $attendance->status }}
+                                                    @endif
                                                 </td>
+
+
+                                                <td>
+                                                    @if ($attendance->check_in_time)
+                                                        {{ \Carbon\Carbon::parse($attendance->check_in_time)->format('h:i A') }}
+                                                    @else
+                                                        ---
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    @if ($attendance->created_at)
+                                                        {{ \Carbon\Carbon::parse($attendance->created_at)->format('H:i') }}
+                                                    @else
+                                                        ---
+                                                    @endif
+                                                </td>
+
+                                                <td>{{ $attendance->manager_approval_status }}</td>
+
+
+                                                <td>
+                                                    @if ($attendance->status === 'On Leave')
+                                                        <span class="text-muted">Leave Approved</span>
+                                                    @else
+                                                        <a href="{{ route('attendance.approve', $attendance->id) }}"
+                                                            class="btn btn-success">Present</a>
+                                                        <a href="{{ route('attendance.absent', $attendance->id) }}"
+                                                            class="btn btn-danger">Absent</a>
+                                                    @endif
+                                                </td>
+
+
+
+
+
                                             </tr>
                                         @empty
                                             <tr>
@@ -88,7 +123,7 @@
                                         @endforelse
                                     @empty
                                         <tr>
-                                            <td colspan="9" class="text-center">No HR Heads Found</td>
+                                            <td colspan="9" class="text-center">No report managers Found</td>
                                         </tr>
                                     @endforelse
                                 </tbody>

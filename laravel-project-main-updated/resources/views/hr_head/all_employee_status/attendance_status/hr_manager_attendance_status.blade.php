@@ -18,7 +18,8 @@
                                         <select class="form-select" id="month" name="month">
                                             <option value="">-- Select Month --</option>
                                             @for ($i = 1; $i <= 12; $i++)
-                                                <option value="{{ sprintf('%02d', $i) }}" {{ request('month') == sprintf('%02d', $i) ? 'selected' : '' }}>
+                                                <option value="{{ sprintf('%02d', $i) }}"
+                                                    {{ request('month') == sprintf('%02d', $i) ? 'selected' : '' }}>
                                                     {{ date('F', mktime(0, 0, 0, $i, 10)) }}
                                                 </option>
                                             @endfor
@@ -28,20 +29,33 @@
                                         <button type="submit" class="btn btn-primary">Filter</button>
                                     </div>
                                     <div class="col-md-auto">
-                                        <a href="{{ route('hr_head.hr_managerattendances') }}" class="btn btn-secondary">Reset</a>
+                                        <a href="{{ route('hr_head.hr_managerattendances') }}"
+                                            class="btn btn-secondary">Reset</a>
                                     </div>
                                 </div>
                             </form>
 
+
+
+                            @php
+                                $currentMonth = now()->format('m');
+                            @endphp
+                            <div class="mb-3 text-end">
+                                <a href="{{ route('hr.download.hrmattendance', ['type' => 'monthly', 'month' => $currentMonth]) }}"
+                                    class="btn btn-success">
+                                    Download Current Month Report
+                                </a>
+                            </div>
+
+
                             <table id="dataTableExample" class="table">
                                 <thead>
                                     <tr>
-                                        <th>#</th>
+                                        <th>Date</th>
                                         <th>Employee ID</th>
                                         <th>Name</th>
                                         <th>Email</th>
                                         <th>Role</th>
-                                        <th>Date</th>
                                         <th>Attendance Status</th>
                                         <th>Check-in Time</th>
                                         <th>System Time</th>
@@ -49,31 +63,55 @@
                                 </thead>
                                 <tbody>
                                     @forelse ($hrHeads as $head)
-                                        @forelse ($head->filteredAttendances as $key => $attendance)
+                                        @foreach ($head->filteredAttendances as $attendance)
                                             @php
-                                                $checkIn = \Carbon\Carbon::parse($attendance->check_in_time);
-                                                $cutoffTime = \Carbon\Carbon::parse($attendance->date . ' 12:01:00');
-                                                $status = $checkIn->gt($cutoffTime) ? 'Absent' : ($attendance->status ?? 'Present');
+                                                $status = 'Present';
+
+                                                if ($attendance->status === 'On Leave') {
+                                                    $status = 'On Leave';
+                                                    $checkInDisplay = '---';
+                                                    $systemTimeDisplay = '---';
+                                                } elseif ($attendance->check_in_time) {
+                                                    $checkIn = \Carbon\Carbon::parse($attendance->check_in_time);
+                                                    $cutoffTime = \Carbon\Carbon::parse(
+                                                        $attendance->date . ' 12:01:00',
+                                                    );
+                                                    $status = $checkIn->gt($cutoffTime)
+                                                        ? 'Absent'
+                                                        : $attendance->status ?? 'Present';
+                                                    $checkInDisplay = $checkIn->format('h:i A');
+                                                    $systemTimeDisplay = $attendance->created_at
+                                                        ? \Carbon\Carbon::parse($attendance->created_at)->format(
+                                                            'H:i:s',
+                                                        )
+                                                        : '---';
+                                                } else {
+                                                    $status = $attendance->status ?? '---';
+                                                    $checkInDisplay = '---';
+                                                    $systemTimeDisplay = '---';
+                                                }
                                             @endphp
                                             <tr>
-                                                <td>{{ $loop->parent->iteration }}.{{ $key + 1 }}</td>
+                                                <td>{{ \Carbon\Carbon::parse($attendance->date)->format('d/M/Y') }}</td>
                                                 <td>{{ $head->employee_id }}</td>
                                                 <td>{{ $head->name }}</td>
                                                 <td>{{ $head->email }}</td>
                                                 <td>{{ $head->user_role }}</td>
-                                                <td>{{ \Carbon\Carbon::parse($attendance->date)->format('d/M/Y') }}</td>
-                                                <td>{{ $status }}</td>
-                                                <td>{{ \Carbon\Carbon::parse($attendance->check_in_time)->format('h:i A') ?? '---' }}</td>
-                                                <td>{{ \Carbon\Carbon::parse($attendance->created_at)->format('H:i:s') }}</td>
+                                                <td>
+                                                    @if ($status === 'On Leave')
+                                                        <span class="badge bg-info text-dark">On Leave</span>
+                                                    @else
+                                                        {{ $attendance->status }}
+                                                    @endif
+                                                </td>
+                                                <td>{{ $checkInDisplay }}</td>
+                                                <td>{{ $systemTimeDisplay }}</td>
                                             </tr>
-                                        @empty
-                                            <tr>
-                                                <td colspan="9" class="text-center">No attendance found for {{ $head->name }}</td>
-                                            </tr>
-                                        @endforelse
+                                        @endforeach
                                     @empty
                                         <tr>
-                                            <td colspan="9" class="text-center">No HR Heads Found</td>
+                                            <td colspan="9" class="text-center">No HR Head attendance records found for
+                                                the selected month.</td>
                                         </tr>
                                     @endforelse
                                 </tbody>

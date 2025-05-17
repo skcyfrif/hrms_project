@@ -10,10 +10,10 @@
             <div class="row">
                 <div class="card shadow-sm border-0">
                     <div class="card-body p-5">
-                        <h6 class="card-title text-center mb-4">Edit Salary Details Of  Employee</h6>
+                        <h6 class="card-title text-center mb-4">Edit Salary Details Of  Manager</h6>
 
                         <!-- Form Start -->
-                        <form method="POST" action="{{ route('update.salaries', $sal->id) }}" class="forms-sample" id="employeeForm">
+                        <form method="POST" action="{{ route('update.hrmsalaries', $sal->id) }}" class="forms-sample" id="employeeForm">
                             @csrf
                             @method('PUT')
                             <input type="hidden" name="id" value="{{$sal->id}}">
@@ -47,27 +47,27 @@
                                         @enderror
                                     </div>
                                     <div class="col-md-4">
-                                        <label for="designation" class="form-label">Designation</label>
-                                        <input type="text" class="form-control" id="designation" name="designation"
-                                               value="{{ $sal->designation }}">
-                                        @error('designation')
+                                        <label for="doj" class="form-label">DOJ</label>
+                                        <input type="date" class="form-control" id="doj" name="doj"
+                                               value="{{ $sal->doj }}">
+                                        @error('doj')
                                             <div class="text-danger mt-1">{{ $message }}</div>
                                         @enderror
                                     </div>
                                     <div class="col-md-4">
-                                        <label for="email" class="form-label">Email</label>
-                                        <input type="text" class="form-control" id="email" name="email"
-                                               value="{{ $sal->email }}" required>
-                                        @error('email')
+                                        <label for="gender" class="form-label">Gender</label>
+                                        <input type="text" class="form-control" id="gender" name="gender"
+                                               value="{{ $sal->gender }}" required>
+                                        @error('gender')
                                             <div class="text-danger mt-1">{{ $message }}</div>
                                         @enderror
                                     </div>
 
                                     <div class="col-md-4">
-                                        <label for="phone_number" class="form-label">Phone Number</label>
-                                        <input type="text" class="form-control" id="phone_number" name="phone_number"
-                                               value="{{ $sal->phone_number }}" required>
-                                        @error('phone_number')
+                                        <label for="grade" class="form-label">Grade</label>
+                                        <input type="text" class="form-control" id="grade" name="grade"
+                                               value="{{ $sal->grade }}" required>
+                                        @error('grade')
                                             <div class="text-danger mt-1">{{ $message }}</div>
                                         @enderror
                                     </div>
@@ -120,43 +120,134 @@
                                             <div class="text-danger mt-1">{{ $message }}</div>
                                         @enderror
                                     </div>
+
                                     <div class="col-md-4">
-                                        <label for="allowances" class="form-label">Allowances</label>
-                                        <select class="form-control" id="allowances" name="allowances" required>
-                                            <option value="housing" {{  $sal->allowances == 'housing' ? 'selected' : '' }}>Housing</option>
-                                            <option value="transportation" {{ $sal->allowances == 'transportation' ? 'selected' : '' }}>Transportation</option>
-                                            <option value="medical" {{ $sal->allowances == 'medical' ? 'selected' : '' }}>Medical</option>
-                                            {{-- <option value="other" {{ $sal->allowances == 'other' ? 'selected' : '' }}>Other</option> --}}
-                                        </select>
-                                        @error('allowances')
+                                        <label for="salary_for_the_month" class="form-label">Salary For The Month</label>
+                                        <input type="text" class="form-control" id="salary_for_the_month" name="salary_for_the_month"
+                                               value="{{ $sal->salary_for_the_month }}" required>
+                                        @error('salary_for_the_month')
+                                            <div class="text-danger mt-1">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+
+                                    <div class="col-md-4">
+                                        <label for="house_rent_allowance" class="form-label">House Rent Allowance</label>
+                                        <input type="text" class="form-control" id="house_rent_allowance" name="house_rent_allowance"
+                                               value="{{ $sal->house_rent_allowance }}" required>
+                                        @error('house_rent_allowance')
                                             <div class="text-danger mt-1">{{ $message }}</div>
                                         @enderror
                                     </div>
                                     <div class="col-md-4">
-                                        <label for="deductions" class="form-label">Deductions</label>
-                                        <select class="form-control" id="deductions" name="deductions" required>
-                                            <option value="taxes" {{  $sal->deductions == 'taxes' ? 'selected' : '' }}>Taxes</option>
-                                            <option value="insurance" {{ $sal->deductions == 'insurance' ? 'selected' : '' }}>Insurance</option>
-                                            <option value="retirement-contributions" {{ $sal->deductions == 'retirement contributions' ? 'selected' : '' }}>Retirement Contributions</option>
-                                            {{-- <option value="others" {{ $sal->deductions == 'others' ? 'selected' : '' }}>Others</option> --}}
-                                        </select>
-                                        @error('deductions')
-                                            <div class="text-danger mt-1">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label for="bonuses" class="form-label">Bonuses</label>
-                                        <input type="text" class="form-control" id="bonuses" name="bonuses"
-                                               value="{{ $sal->bonuses }}" required>
-                                        @error('bonuses')
-                                            <div class="text-danger mt-1">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label for="overtime_pay" class="form-label">Overtime Pay</label>
-                                        <input type="text" class="form-control" id="overtime_pay" name="overtime_pay"
+                                        <label for="conveyance_allowance" class="form-label">Conveyance Allowance</label>
+                                        <input type="text" class="form-control" id="conveyance_allowance" name="conveyance_allowance"
                                                value="{{ $sal->basic_salary }}" required>
-                                        @error('overtime_pay')
+                                        @error('conveyance_allowance')
+                                            <div class="text-danger mt-1">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label for="lunch_allowance" class="form-label">Lunch Allowance</label>
+                                        <input type="text" class="form-control" id="lunch_allowance" name="lunch_allowance"
+                                               value="{{ $sal->basic_salary }}" required>
+                                        @error('lunch_allowance')
+                                            <div class="text-danger mt-1">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label for="medical_allowance" class="form-label">Medical Allowance</label>
+                                        <input type="text" class="form-control" id="medical_allowance" name="medical_allowance"
+                                               value="{{ $sal->basic_salary }}" required>
+                                        @error('medical_allowance')
+                                            <div class="text-danger mt-1">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label for="other_allowance" class="form-label">Other Allowance</label>
+                                        <input type="text" class="form-control" id="other_allowance" name="other_allowance"
+                                               value="{{ $sal->basic_salary }}" required>
+                                        @error('other_allowance')
+                                            <div class="text-danger mt-1">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label for="leave_travel_allowance" class="form-label">Leave Travel Allowance</label>
+                                        <input type="text" class="form-control" id="leave_travel_allowance" name="leave_travel_allowance"
+                                               value="{{ $sal->basic_salary }}" required>
+                                        @error('leave_travel_allowance')
+                                            <div class="text-danger mt-1">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label for="personal_pay" class="form-label">Personal  Pay</label>
+                                        <input type="text" class="form-control" id="personal_pay" name="personal_pay"
+                                               value="{{ $sal->basic_salary }}" required>
+                                        @error('personal_pay')
+                                            <div class="text-danger mt-1">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    {{-- <h3 style="color: red">Total Ammount</h3>
+                                    <div class="col-md-4">
+                                        <label for="total_ammount" class="form-label">Total Ammount</label>
+                                        <input type="text" class="form-control" id="total_ammount" name="total_ammount"
+                                               value="{{ $sal->basic_salary }}" required>
+                                        @error('total_ammount')
+                                            <div class="text-danger mt-1">{{ $message }}</div>
+                                        @enderror
+                                    </div> --}}
+
+                                    <h3 style="color: red">Deductions</h3>
+                                    <div class="col-md-4">
+                                        <label for="professional_tax" class="form-label">Professional Tax</label>
+                                        <input type="text" class="form-control" id="professional_tax" name="professional_tax"
+                                               value="{{ $sal->basic_salary }}" required>
+                                        @error('professional_tax')
+                                            <div class="text-danger mt-1">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label for="esic" class="form-label">ESIC</label>
+                                        <input type="text" class="form-control" id="esic" name="esic"
+                                               value="{{ $sal->basic_salary }}" required>
+                                        @error('esic')
+                                            <div class="text-danger mt-1">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+
+                                    <h3 style="color: red; margin-top: 1cm; margin-bottom: 0.5cm;">Net Salary</h3>
+
+                                    <div class="col-md-4">
+                                        <label for="net_salary_payables" class="form-label">Net Salary Payable</label>
+                                        <input type="text" class="form-control" id="net_salary_payables" name="net_salary_payables"
+                                               value="{{ $sal->basic_salary }}" required>
+                                        @error('net_salary_payables')
+                                            <div class="text-danger mt-1">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label for="lop_days" class="form-label">LOP Days</label>
+                                        <input type="text" class="form-control" id="lop_days" name="lop_days"
+                                               value="{{ $sal->basic_salary }}" required>
+                                        @error('lop_days')
+                                            <div class="text-danger mt-1">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label for="standard_days" class="form-label">Standard Days</label>
+                                        <input type="text" class="form-control" id="standard_days" name="standard_days"
+                                               value="{{ $sal->basic_salary }}" required>
+                                        @error('standard_days')
                                             <div class="text-danger mt-1">{{ $message }}</div>
                                         @enderror
                                     </div>
@@ -174,16 +265,16 @@
                             <div class="form-step" id="step-2" style="display: none;">
                                 <h3 style="color: red">Payment Information</h3>
                                 <div class="row mb-4">
-                                    <div class="col-md-4">
+                                    {{-- <div class="col-md-4">
                                         <label for="salary_for_the_month" class="form-label">Salary For The Month</label>
                                         <input type="text" class="form-control" id="salary_for_the_month" name="salary_for_the_month"
                                                value="{{ $sal->salary_for_the_month }}">
                                         @error('salary_for_the_month')
                                             <div class="text-danger mt-1">{{ $message }}</div>
                                         @enderror
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
+                                    </div> --}}
+
+                                    <div class="col-md-4">
                                     <label for="no_of_working_day" class="form-label">No. Of Working Day</label>
                                     <input type="text" class="form-control" id="no_of_working_day" name="no_of_working_day"
                                                value="{{ $sal->no_of_working_day }}">
@@ -200,7 +291,7 @@
                                             <div class="text-danger mt-1">{{ $message }}</div>
                                         @enderror
                                     </div>
-                                    <div class="col-md-4">
+                                    {{-- <div class="col-md-4">
                                         <label for="payment_date" class="form-label">Payment Date</label>
                                         <input type="text" class="form-control" id="payment_date" name="payment_date"
                                                value="{{ $sal->payment_date }}">
@@ -221,12 +312,11 @@
                                         <select class="form-control" id="payment_method" name="payment_method" required>
                                             <option value="bank-transfer" {{  $sal->payment_method == 'bank transfer' ? 'selected' : '' }}>Bank Transfer</option>
                                             <option value="digital-wallet" {{ $sal->payment_method == 'digital-wallet' ? 'selected' : '' }}>Digital Wallet</option>
-                                            {{-- <option value="other" {{ $sal->payment_method == 'other' ? 'selected' : '' }}>Other</option> --}}
                                         </select>
                                         @error('payment_method')
                                             <div class="text-danger mt-1">{{ $message }}</div>
                                         @enderror
-                                    </div>
+                                    </div> --}}
 
                                     {{-- comments/notes --}}
                                     <h3 style="color: red">Comments/Notes</h3>

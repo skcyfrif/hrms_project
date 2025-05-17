@@ -17,6 +17,13 @@ use App\Models\Leave;
 use App\Models\Expenseclaim;
 use App\Models\ClaimRejection;
 use Carbon\Carbon;
+use App\Models\Payrolls;
+use App\Models\Leavebalance;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ContactMail;
+use Illuminate\Support\Facades\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+
 
 
 
@@ -216,7 +223,7 @@ public function viewAllHrHeads()
     // Get all HR heads with their attendance data
     $hrHeads = Subu::with('attendance')->where('user_role', 'head')->get();
 
-    return view('admin.all_hr_head.all_hr_head_list', compact('hrHeads'));
+    return view('admin.View_All_Employees.all_hr_head.all_hr_head_list', compact('hrHeads'));
 }
 
 
@@ -239,7 +246,7 @@ public function viewManagersByHrHead($hrHeadId)
 
   // Stop execution to inspect data
 
-    return view('admin.all_hr_managers.all_hr_managers', compact('hrHead', 'managers'));
+    return view('admin.View_All_Employees.all_hr_managers.all_hr_managers', compact('hrHead', 'managers'));
 }
 
 public function viewEmployeesByManager($managerId)
@@ -260,24 +267,24 @@ public function viewEmployeesByManager($managerId)
 
         // Stop execution to inspect data
 
-        return view('admin.all_employee.all_employee', compact('hrManager', 'employees'));
+        return view('admin.View_All_Employees.all_employee.all_employee', compact('hrManager', 'employees'));
 
     }
 
     public function EmployeeView($id)
     {
         $test = Subu::findOrFail($id);
-        return view('admin.all_employee.view_employee_list', compact('test'));
+        return view('admin.View_All_Employees.all_employee.view_employee_list', compact('test'));
     }
     public function HrHeadView($id)
     {
         $test = Subu::findOrFail($id);
-        return view('admin.all_hr_head.view_hr_head_list', compact('test'));
+        return view('admin.View_All_Employees.all_hr_head.view_hr_head_list', compact('test'));
     }
     public function HrManagerView($id)
     {
         $test = Subu::findOrFail($id);
-        return view('admin.all_hr_managers.view_hr_manager_list', compact('test'));
+        return view('admin.View_All_Employees.all_hr_managers.view_hr_manager_list', compact('test'));
     }
 
 
@@ -445,116 +452,654 @@ public function viewEmployeesByManager($managerId)
 
 
 
-///////// All  attendances status//////////
+/////////////////////////////// All  attendances status of hr head ///////////////////////////////
 
 
 
 public function viewAllHrHeadsAttendances(Request $request)
 {
-    $month = $request->input('month');
+    // Get selected month or default to current month
+    $month = $request->input('month', now()->format('m'));
     $currentYear = now()->year;
+    $intMonth = (int)$month; // Ensure month is an integer
 
+    // Get all HR Heads
     $hrHeads = Subu::where('user_role', 'head')->get();
 
     foreach ($hrHeads as $head) {
-        $attendanceQuery = $head->attendance();
+        // Attendance for the selected month
+        $attendances = $head->attendance()
+            ->whereMonth('date', $month)
+            ->whereYear('date', $currentYear)
+            ->get()
+            ->keyBy('date');
 
-        if ($month) {
-            $attendanceQuery->whereMonth('date', $month)
-                            ->whereYear('date', $currentYear);
-        } else {
-            $attendanceQuery->whereYear('date', $currentYear);
+        // Approved leaves for the selected month
+        $leaves = Leave::where('employee_id', $head->id)
+            ->where('admin_status', 'adminapprove')
+            // ->where('m_status', 'mapprove')
+            ->whereMonth('leave_from', '<=', $intMonth)
+            ->whereMonth('leave_to', '>=', $intMonth)
+            ->get();
+
+        // Prepare combined attendance + leave records
+        $daysInMonth = now()->setMonth($intMonth)->daysInMonth;
+        $records = collect();
+
+        for ($day = 1; $day <= $daysInMonth; $day++) {
+            $date = now()->setDate($currentYear, $intMonth, $day)->format('Y-m-d');
+
+            if (isset($attendances[$date])) {
+                // Attendance record exists
+                $records->push($attendances[$date]);
+            } else {
+                // Check if it's an approved leave
+                $onLeave = $leaves->first(function ($leave) use ($date) {
+                    return $date >= $leave->leave_from && $date <= $leave->leave_to;
+                });
+
+                if ($onLeave) {
+                    $records->push((object)[
+                        'date' => $date,
+                        'status' => 'On Leave',
+                        'check_in_time' => null,
+                        'created_at' => null,
+                    ]);
+                }
+                // else {
+                //     // Mark as Absent (no attendance, no leave)
+                //     $records->push((object)[
+                //         'date' => $date,
+                //         'status' => 'Absent',
+                //         'check_in_time' => null,
+                //         'created_at' => null,
+                //     ]);
+                // }
+            }
         }
 
-        // Get all matching records as a collection
-        $head->filteredAttendances = $attendanceQuery->orderBy('date')->get();
+        // Sort records by date
+        $head->filteredAttendances = $records->sortBy('date')->values();
     }
 
-    return view('admin.attendanceslisting.hr_head_attendance_status', compact('hrHeads', 'month'));
+    return view('admin.attendancestatus.hr_head_attendance_status', compact('hrHeads', 'month'));
 }
+
+
 
 
 
 public function viewAllHrmanagerAttendances(Request $request)
 {
-    $month = $request->input('month');
+    // Get selected month or default to current month
+    $month = $request->input('month', now()->format('m'));
     $currentYear = now()->year;
+    $intMonth = (int)$month; // Ensure month is an integer
 
+    // Get all HR Heads
     $hrHeads = Subu::where('user_role', 'manager')->get();
 
     foreach ($hrHeads as $head) {
-        $attendanceQuery = $head->attendance();
+        // Attendance for the selected month
+        $attendances = $head->attendance()
+            ->whereMonth('date', $month)
+            ->whereYear('date', $currentYear)
+            ->get()
+            ->keyBy('date');
 
-        if ($month) {
-            $attendanceQuery->whereMonth('date', $month)
-                            ->whereYear('date', $currentYear);
-        } else {
-            $attendanceQuery->whereYear('date', $currentYear);
+        // Approved leaves for the selected month
+        $leaves = Leave::where('employee_id', $head->id)
+            ->where('hr_status', 'hrapprove')
+            // ->where('m_status', 'mapprove')
+            ->whereMonth('leave_from', '<=', $intMonth)
+            ->whereMonth('leave_to', '>=', $intMonth)
+            ->get();
+
+        // Prepare combined attendance + leave records
+        $daysInMonth = now()->setMonth($intMonth)->daysInMonth;
+        $records = collect();
+
+        for ($day = 1; $day <= $daysInMonth; $day++) {
+            $date = now()->setDate($currentYear, $intMonth, $day)->format('Y-m-d');
+
+            if (isset($attendances[$date])) {
+                // Attendance record exists
+                $records->push($attendances[$date]);
+            } else {
+                // Check if it's an approved leave
+                $onLeave = $leaves->first(function ($leave) use ($date) {
+                    return $date >= $leave->leave_from && $date <= $leave->leave_to;
+                });
+
+                if ($onLeave) {
+                    $records->push((object)[
+                        'date' => $date,
+                        'status' => 'On Leave',
+                        'check_in_time' => null,
+                        'created_at' => null,
+                    ]);
+                }
+            }
         }
 
-        // Get all matching records as a collection
-        $head->filteredAttendances = $attendanceQuery->orderBy('date')->get();
+        // Sort records by date
+        $head->filteredAttendances = $records->sortBy('date')->values();
     }
-
-
-    return view('admin.attendanceslisting.all_hr_managers_attendance', compact('hrHeads', 'month'));
+    return view('admin.attendancestatus.all_hr_managers_attendance', compact('hrHeads', 'month'));
 }
 
 public function viewAllreportmanagerAttendances(Request $request)
 {
-    $month = $request->input('month');
+     // Get selected month or default to current month
+    $month = $request->input('month', now()->format('m'));
     $currentYear = now()->year;
+    $intMonth = (int)$month; // Ensure month is an integer
 
+    // Get all HR Heads
     $hrHeads = Subu::where('user_role', 'reportmanager')->get();
 
     foreach ($hrHeads as $head) {
-        $attendanceQuery = $head->attendance();
+        // Attendance for the selected month
+        $attendances = $head->attendance()
+            ->whereMonth('date', $month)
+            ->whereYear('date', $currentYear)
+            ->get()
+            ->keyBy('date');
 
-        if ($month) {
-            $attendanceQuery->whereMonth('date', $month)
-                            ->whereYear('date', $currentYear);
-        } else {
-            $attendanceQuery->whereYear('date', $currentYear);
+        // Approved leaves for the selected month
+        $leaves = Leave::where('employee_id', $head->id)
+            ->where('m_status', 'mapprove')
+            // ->where('m_status', 'mapprove')
+            ->whereMonth('leave_from', '<=', $intMonth)
+            ->whereMonth('leave_to', '>=', $intMonth)
+            ->get();
+
+        // Prepare combined attendance + leave records
+        $daysInMonth = now()->setMonth($intMonth)->daysInMonth;
+        $records = collect();
+
+        for ($day = 1; $day <= $daysInMonth; $day++) {
+            $date = now()->setDate($currentYear, $intMonth, $day)->format('Y-m-d');
+
+            if (isset($attendances[$date])) {
+                // Attendance record exists
+                $records->push($attendances[$date]);
+            } else {
+                // Check if it's an approved leave
+                $onLeave = $leaves->first(function ($leave) use ($date) {
+                    return $date >= $leave->leave_from && $date <= $leave->leave_to;
+                });
+
+                if ($onLeave) {
+                    $records->push((object)[
+                        'date' => $date,
+                        'status' => 'On Leave',
+                        'check_in_time' => null,
+                        'created_at' => null,
+                    ]);
+                }
+            }
         }
 
-        // Get all matching records as a collection
-        $head->filteredAttendances = $attendanceQuery->orderBy('date')->get();
+        // Sort records by date
+        $head->filteredAttendances = $records->sortBy('date')->values();
     }
-
-    return view('admin.attendanceslisting.all_report_managers_attendance', compact('hrHeads', 'month'));
+    return view('admin.attendancestatus.all_report_managers_attendance', compact('hrHeads', 'month'));
 }
 
 
 public function viewAllEmployeesAttendances(Request $request)
 {
-    $month = $request->input('month');
+     // Get selected month or default to current month
+    $month = $request->input('month', now()->format('m'));
     $currentYear = now()->year;
+    $intMonth = (int)$month; // Ensure month is an integer
 
+    // Get all HR Heads
     $hrHeads = Subu::where('user_role', 'user')->get();
 
     foreach ($hrHeads as $head) {
-        $attendanceQuery = $head->attendance();
+        // Attendance for the selected month
+        $attendances = $head->attendance()
+            ->whereMonth('date', $month)
+            ->whereYear('date', $currentYear)
+            ->get()
+            ->keyBy('date');
 
-        if ($month) {
-            $attendanceQuery->whereMonth('date', $month)
-                            ->whereYear('date', $currentYear);
-        } else {
-            $attendanceQuery->whereYear('date', $currentYear);
+        // Approved leaves for the selected month
+        $leaves = Leave::where('employee_id', $head->id)
+            ->where('m_status', 'mapprove')
+            // ->where('m_status', 'mapprove')
+            ->whereMonth('leave_from', '<=', $intMonth)
+            ->whereMonth('leave_to', '>=', $intMonth)
+            ->get();
+
+        // Prepare combined attendance + leave records
+        $daysInMonth = now()->setMonth($intMonth)->daysInMonth;
+        $records = collect();
+
+        for ($day = 1; $day <= $daysInMonth; $day++) {
+            $date = now()->setDate($currentYear, $intMonth, $day)->format('Y-m-d');
+
+            if (isset($attendances[$date])) {
+                // Attendance record exists
+                $records->push($attendances[$date]);
+            } else {
+                // Check if it's an approved leave
+                $onLeave = $leaves->first(function ($leave) use ($date) {
+                    return $date >= $leave->leave_from && $date <= $leave->leave_to;
+                });
+
+                if ($onLeave) {
+                    $records->push((object)[
+                        'date' => $date,
+                        'status' => 'On Leave',
+                        'check_in_time' => null,
+                        'created_at' => null,
+                    ]);
+                }
+            }
         }
 
-        // Get all matching records as a collection
-        $head->filteredAttendances = $attendanceQuery->orderBy('date')->get();
+        // Sort records by date
+        $head->filteredAttendances = $records->sortBy('date')->values();
     }
 
 
-    return view('admin.attendanceslisting.all_employees_attendance', compact('hrHeads', 'month'));
+    return view('admin.attendancestatus.all_employees_attendance', compact('hrHeads', 'month'));
 }
 
 
 
 
 
-///////////////////////////////////////////////leave status of all employees///////////////////////////////////////////////
+
+
+
+
+public function downloadHRHeadAttendanceReport(Request $request)
+{
+    $type  = $request->query('type', 'monthly');
+    $month = (int) $request->query('month', now()->month);
+    $year  = (int) $request->query('year', now()->year);
+
+    $fileName = "employee_attendance_report_{$type}_{$month}_{$year}.csv";
+
+    $headers = [
+        "Content-Type"        => "text/csv",
+        "Content-Disposition" => "attachment; filename={$fileName}",
+        "Pragma"              => "no-cache",
+        "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+        "Expires"             => "0",
+    ];
+
+    $callback = function () use ($month, $year) {
+        $handle = fopen('php://output', 'w');
+
+        // CSV Headers
+        fputcsv($handle, ['Date', 'Employee ID', 'Name', 'Status', 'Check-in', 'System Time']);
+
+        $employees = Subu::where('user_role', 'head')->get();
+
+        foreach ($employees as $emp) {
+            // Attendance records
+            $att = $emp->attendance()
+                ->whereYear('date', $year)
+                ->whereMonth('date', $month)
+                ->get()
+                ->keyBy('date');
+
+            // Leave records
+            $monthStart = now()->setDate($year, $month, 1)->startOfDay();
+            $monthEnd   = now()->setDate($year, $month, 1)->endOfMonth()->endOfDay();
+
+            $leaves = Leave::where('employee_id', $emp->id)
+                ->where('admin_status', 'adminapprove')
+                ->where(function ($q) use ($monthStart, $monthEnd) {
+                    $q->whereBetween('leave_from', [$monthStart, $monthEnd])
+                      ->orWhereBetween('leave_to', [$monthStart, $monthEnd])
+                      ->orWhere(function ($q2) use ($monthStart, $monthEnd) {
+                          $q2->where('leave_from', '<=', $monthStart)
+                             ->where('leave_to', '>=', $monthEnd);
+                      });
+                })
+                ->get();
+
+            // Loop through each day of the month
+            $days = now()->setDate($year, $month, 1)->daysInMonth;
+            for ($d = 1; $d <= $days; $d++) {
+                $date = now()->setDate($year, $month, $d)->format('Y-m-d');
+                $record = $att[$date] ?? null;
+
+                // Check if this date is within any approved leave
+                $onLeave = $leaves->first(fn($l) =>
+                    $date >= \Carbon\Carbon::parse($l->leave_from)->format('Y-m-d') &&
+                    $date <= \Carbon\Carbon::parse($l->leave_to)->format('Y-m-d')
+                );
+
+                if (!$record && $onLeave) {
+                    $record = (object)[
+                        'date'          => $date,
+                        'status'        => 'On Leave',
+                        'check_in_time' => null,
+                        'created_at'    => null,
+                    ];
+                }
+
+                if ($record) {
+                    fputcsv($handle, [
+                        \Carbon\Carbon::parse($record->date)->format('d/M/Y'),
+                        $emp->employee_id,
+                        $emp->name,
+                        $record->status ?: 'Present',
+                        $record->check_in_time
+                            ? \Carbon\Carbon::parse($record->check_in_time)->format('h:i A')
+                            : '---',
+                        $record->created_at
+                            ? \Carbon\Carbon::parse($record->created_at)->format('H:i:s')
+                            : '---',
+                    ]);
+                }
+            }
+        }
+
+        fclose($handle);
+        flush();
+    };
+
+    return response()->stream($callback, 200, $headers);
+}
+
+
+
+
+public function downloadHRMAttendanceReport(Request $request)
+{
+    $type  = $request->query('type', 'monthly');
+    $month = (int) $request->query('month', now()->month);
+    $year  = (int) $request->query('year', now()->year);
+
+    $fileName = "employee_attendance_report_{$type}_{$month}_{$year}.csv";
+
+    $headers = [
+        "Content-Type"        => "text/csv",
+        "Content-Disposition" => "attachment; filename={$fileName}",
+        "Pragma"              => "no-cache",
+        "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+        "Expires"             => "0",
+    ];
+
+    $callback = function () use ($month, $year) {
+        $handle = fopen('php://output', 'w');
+
+        // CSV Headers
+        fputcsv($handle, ['Date', 'Employee ID', 'Name', 'Status', 'Check-in', 'System Time']);
+
+        $employees = Subu::where('user_role', 'manager')->get();
+
+        foreach ($employees as $emp) {
+            // Attendance records
+            $att = $emp->attendance()
+                ->whereYear('date', $year)
+                ->whereMonth('date', $month)
+                ->get()
+                ->keyBy('date');
+
+            // Leave records
+            $monthStart = now()->setDate($year, $month, 1)->startOfDay();
+            $monthEnd   = now()->setDate($year, $month, 1)->endOfMonth()->endOfDay();
+
+            $leaves = Leave::where('employee_id', $emp->id)
+                ->where('hr_status', 'hrapprove')
+                ->where(function ($q) use ($monthStart, $monthEnd) {
+                    $q->whereBetween('leave_from', [$monthStart, $monthEnd])
+                      ->orWhereBetween('leave_to', [$monthStart, $monthEnd])
+                      ->orWhere(function ($q2) use ($monthStart, $monthEnd) {
+                          $q2->where('leave_from', '<=', $monthStart)
+                             ->where('leave_to', '>=', $monthEnd);
+                      });
+                })
+                ->get();
+
+            // Loop through each day of the month
+            $days = now()->setDate($year, $month, 1)->daysInMonth;
+            for ($d = 1; $d <= $days; $d++) {
+                $date = now()->setDate($year, $month, $d)->format('Y-m-d');
+                $record = $att[$date] ?? null;
+
+                // Check if this date is within any approved leave
+                $onLeave = $leaves->first(fn($l) =>
+                    $date >= \Carbon\Carbon::parse($l->leave_from)->format('Y-m-d') &&
+                    $date <= \Carbon\Carbon::parse($l->leave_to)->format('Y-m-d')
+                );
+
+                if (!$record && $onLeave) {
+                    $record = (object)[
+                        'date'          => $date,
+                        'status'        => 'On Leave',
+                        'check_in_time' => null,
+                        'created_at'    => null,
+                    ];
+                }
+
+                if ($record) {
+                    fputcsv($handle, [
+                        \Carbon\Carbon::parse($record->date)->format('d/M/Y'),
+                        $emp->employee_id,
+                        $emp->name,
+                        $record->status ?: 'Present',
+                        $record->check_in_time
+                            ? \Carbon\Carbon::parse($record->check_in_time)->format('h:i A')
+                            : '---',
+                        $record->created_at
+                            ? \Carbon\Carbon::parse($record->created_at)->format('H:i:s')
+                            : '---',
+                    ]);
+                }
+            }
+        }
+
+        fclose($handle);
+        flush();
+    };
+
+    return response()->stream($callback, 200, $headers);
+}
+
+
+
+
+public function downloadRManagerAttendanceReport(Request $request)
+{
+    $type  = $request->query('type', 'monthly');
+    $month = (int) $request->query('month', now()->month);
+    $year  = (int) $request->query('year', now()->year);
+
+    $fileName = "employee_attendance_report_{$type}_{$month}_{$year}.csv";
+
+    $headers = [
+        "Content-Type"        => "text/csv",
+        "Content-Disposition" => "attachment; filename={$fileName}",
+        "Pragma"              => "no-cache",
+        "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+        "Expires"             => "0",
+    ];
+
+    $callback = function () use ($month, $year) {
+        $handle = fopen('php://output', 'w');
+
+        // CSV Headers
+        fputcsv($handle, ['Date', 'Employee ID', 'Name', 'Status', 'Check-in', 'System Time']);
+
+        $employees = Subu::where('user_role', 'reportmanager')->get();
+
+        foreach ($employees as $emp) {
+            // Attendance records
+            $att = $emp->attendance()
+                ->whereYear('date', $year)
+                ->whereMonth('date', $month)
+                ->get()
+                ->keyBy('date');
+
+            // Leave records
+            $monthStart = now()->setDate($year, $month, 1)->startOfDay();
+            $monthEnd   = now()->setDate($year, $month, 1)->endOfMonth()->endOfDay();
+
+            $leaves = Leave::where('employee_id', $emp->id)
+                ->where('m_status', 'mapprove')
+                ->where(function ($q) use ($monthStart, $monthEnd) {
+                    $q->whereBetween('leave_from', [$monthStart, $monthEnd])
+                      ->orWhereBetween('leave_to', [$monthStart, $monthEnd])
+                      ->orWhere(function ($q2) use ($monthStart, $monthEnd) {
+                          $q2->where('leave_from', '<=', $monthStart)
+                             ->where('leave_to', '>=', $monthEnd);
+                      });
+                })
+                ->get();
+
+            // Loop through each day of the month
+            $days = now()->setDate($year, $month, 1)->daysInMonth;
+            for ($d = 1; $d <= $days; $d++) {
+                $date = now()->setDate($year, $month, $d)->format('Y-m-d');
+                $record = $att[$date] ?? null;
+
+                // Check if this date is within any approved leave
+                $onLeave = $leaves->first(fn($l) =>
+                    $date >= \Carbon\Carbon::parse($l->leave_from)->format('Y-m-d') &&
+                    $date <= \Carbon\Carbon::parse($l->leave_to)->format('Y-m-d')
+                );
+
+                if (!$record && $onLeave) {
+                    $record = (object)[
+                        'date'          => $date,
+                        'status'        => 'On Leave',
+                        'check_in_time' => null,
+                        'created_at'    => null,
+                    ];
+                }
+
+                if ($record) {
+                    fputcsv($handle, [
+                        \Carbon\Carbon::parse($record->date)->format('d/M/Y'),
+                        $emp->employee_id,
+                        $emp->name,
+                        $record->status ?: 'Present',
+                        $record->check_in_time
+                            ? \Carbon\Carbon::parse($record->check_in_time)->format('h:i A')
+                            : '---',
+                        $record->created_at
+                            ? \Carbon\Carbon::parse($record->created_at)->format('H:i:s')
+                            : '---',
+                    ]);
+                }
+            }
+        }
+
+        fclose($handle);
+        flush();
+    };
+
+    return response()->stream($callback, 200, $headers);
+}
+
+
+
+public function downloadEMPloyeeAttendanceReport(Request $request)
+{
+    $type  = $request->query('type', 'monthly');
+    $month = (int) $request->query('month', now()->month);
+    $year  = (int) $request->query('year', now()->year);
+
+    $fileName = "employee_attendance_report_{$type}_{$month}_{$year}.csv";
+
+    $headers = [
+        "Content-Type"        => "text/csv",
+        "Content-Disposition" => "attachment; filename={$fileName}",
+        "Pragma"              => "no-cache",
+        "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+        "Expires"             => "0",
+    ];
+
+    $callback = function () use ($month, $year) {
+        $handle = fopen('php://output', 'w');
+
+        // CSV Headers
+        fputcsv($handle, ['Date', 'Employee ID', 'Name', 'Status', 'Check-in', 'System Time']);
+
+        $employees = Subu::where('user_role', 'user')->get();
+
+        foreach ($employees as $emp) {
+            // Attendance records
+            $att = $emp->attendance()
+                ->whereYear('date', $year)
+                ->whereMonth('date', $month)
+                ->get()
+                ->keyBy('date');
+
+            // Leave records
+            $monthStart = now()->setDate($year, $month, 1)->startOfDay();
+            $monthEnd   = now()->setDate($year, $month, 1)->endOfMonth()->endOfDay();
+
+            $leaves = Leave::where('employee_id', $emp->id)
+                ->where('m_status', 'mapprove')
+                ->where(function ($q) use ($monthStart, $monthEnd) {
+                    $q->whereBetween('leave_from', [$monthStart, $monthEnd])
+                      ->orWhereBetween('leave_to', [$monthStart, $monthEnd])
+                      ->orWhere(function ($q2) use ($monthStart, $monthEnd) {
+                          $q2->where('leave_from', '<=', $monthStart)
+                             ->where('leave_to', '>=', $monthEnd);
+                      });
+                })
+                ->get();
+
+            // Loop through each day of the month
+            $days = now()->setDate($year, $month, 1)->daysInMonth;
+            for ($d = 1; $d <= $days; $d++) {
+                $date = now()->setDate($year, $month, $d)->format('Y-m-d');
+                $record = $att[$date] ?? null;
+
+                // Check if this date is within any approved leave
+                $onLeave = $leaves->first(fn($l) =>
+                    $date >= \Carbon\Carbon::parse($l->leave_from)->format('Y-m-d') &&
+                    $date <= \Carbon\Carbon::parse($l->leave_to)->format('Y-m-d')
+                );
+
+                if (!$record && $onLeave) {
+                    $record = (object)[
+                        'date'          => $date,
+                        'status'        => 'On Leave',
+                        'check_in_time' => null,
+                        'created_at'    => null,
+                    ];
+                }
+
+                if ($record) {
+                    fputcsv($handle, [
+                        \Carbon\Carbon::parse($record->date)->format('d/M/Y'),
+                        $emp->employee_id,
+                        $emp->name,
+                        $record->status ?: 'Present',
+                        $record->check_in_time
+                            ? \Carbon\Carbon::parse($record->check_in_time)->format('h:i A')
+                            : '---',
+                        $record->created_at
+                            ? \Carbon\Carbon::parse($record->created_at)->format('H:i:s')
+                            : '---',
+                    ]);
+                }
+            }
+        }
+
+        fclose($handle);
+        flush();
+    };
+
+    return response()->stream($callback, 200, $headers);
+}
+
+
+
+///////////////////////////////////////////////leave status of all hrhead///////////////////////////////////////////////
 
 public function viewAllHrHeadsLeaves(Request $request)
 {
@@ -593,6 +1138,7 @@ public function viewAllHrHeadsLeaves(Request $request)
 
 
 
+///////////////////////////////////////////////leave status of all hr manager///////////////////////////////////////////////
 
 
 
@@ -632,6 +1178,11 @@ public function viewAllHrmLeaves(Request $request)
     return view('admin.leavestatus.all_hr_managers_leave', compact('hrHeads', 'selectedMonth', 'month', 'year'));
 }
 
+
+///////////////////////////////////////////////leave status of all reporting manager///////////////////////////////////////////////
+
+
+
 public function viewAllRmLeaves(Request $request)
 {
     $month = $request->input('month', now()->month); // numeric month (1-12)
@@ -667,6 +1218,10 @@ public function viewAllRmLeaves(Request $request)
 
     return view('admin.leavestatus.all_rm_leavestatus', compact('hrHeads', 'selectedMonth', 'month', 'year'));
 }
+
+
+/////////////////////////////////////////////// leave status of all Employees ///////////////////////////////////////////////
+
 
 
 public function viewAllEmployeeLeaves(Request $request)
@@ -837,48 +1392,7 @@ public function viewAllEmployeeClaims(Request $request)
 
 
 
-// public function viewManagersClaimStatusByHrHead($hrHeadId)
-// {
-//     // Find the HR Head by ID
-//     $hrHead = Subu::where('id', $hrHeadId)->first();
-//     // Check if HR Head exists
-//     if (!$hrHead) {
-//         return redirect()->back()->with('error', 'HR Head not found.');
-//     }
-//     // Get the user ID of the HR Head
-//     $user_id = $hrHead->user_id;
-//     // Fetch all managers created by this HR Head
-//     $managers = Subu::with('claim')  // Eager load the attendance data
-//                     ->where('created_by', $user_id)
-//                     ->where('user_role', 'manager')
-//                     ->get();
 
-//   // Stop execution to inspect data
-
-//     return view('admin.claimstatus.all_hr_managers_claim', compact('hrHead', 'managers'));
-// }
-
-// public function viewEmployeesClaimStatusByManager($managerId)
-//     {
-//         // Find the HR Head by ID
-//         $hrManager = Subu::where('id', $managerId)->first();
-//         // Check if HR Head exists
-//         if (!$hrManager) {
-//             return redirect()->back()->with('error', 'HR Manager not found.');
-//         }
-//         // Get the user ID of the HR Head
-//         $user_id = $hrManager->user_id;
-//         // Fetch all managers created by this HR Head
-//         $employees = Subu::with('claim')
-//                         ->where('created_by', $user_id)
-//                         ->whereIn('user_role', ['user', 'reportmanager'])  // Include both roles
-//                         // ->where('user_role', 'user')
-//                         ->get();
-
-//         // Stop execution to inspect data
-
-//         return view('admin.claimstatus.all_employee_claim', compact('hrManager', 'employees'));
-//     }
 
 
 
@@ -886,64 +1400,133 @@ public function viewAllEmployeeClaims(Request $request)
 
     ///////////////////////////////////////leave approval status of hrhead///////////////////////////////////////
 
-public function LeaveApprovalStatusofhrHead()
-{
-    // Fetch salary records where the user_role is either 'user' or 'reportmanager' and created by the logged-in manager
-$approvals = Leave::whereHas('employeeleavestatusinhrm', function ($query) {
-    $query->whereIn('user_role', ['head'])  // Check for both 'user' and 'reportmanager'
-          ->where('created_by', auth()->user()->id);  // Filter by logged-in manager's ID
-})->latest()->get();
-// dd($approvals->toArray());
-return view('admin.hrhead_leave_aproval.leavestatus', compact('approvals'));
-}
+    public function LeaveApprovalStatusofhrHead()
+    {
+        // Fetch salary records where the user_role is either 'user' or 'reportmanager' and created by the logged-in manager
+    $approvals = Leave::whereHas('employeeleavestatusinhrm', function ($query) {
+        $query->whereIn('user_role', ['head'])  // Check for both 'user' and 'reportmanager'
+              ->where('created_by', auth()->user()->id);  // Filter by logged-in manager's ID
+    })->latest()->get();
+
+    return view('admin.hrhead_leave_aproval.leavestatus', compact('approvals'));
+    }
 
 public function approveLeaveofhrHead($id)
-    {
-        $leave = Leave::findOrFail($id);
-        $leave->admin_status = 'adminapprove';
-        $leave->save();
-        return redirect()->back()->with('success', 'Leave Approved Successfully');
-    }
+        {
+            $leave = Leave::findOrFail($id);
+            if ($leave->admin_status == 'adminapprove' || $leave->admin_status == 'adminpending') {
+                $employeeId = $leave->employee_id;
+                $year = \Carbon\Carbon::parse($leave->leave_from)->year;
 
-public function rejectLeaveofhrHead($id)
-    {
-        $leave = Leave::findOrFail($id);
-        $leave->admin_status = 'adminreject';
-        $leave->save();
-        return redirect()->back()->with('error', 'Leave Rejected');
-    }
+                $leaveBalance = Leavebalance::where('employee_id', $employeeId)
+                    ->where('year', $year)
+                    ->first();
 
-    // leave approval status of employees when reject open a dialouge box
+                if ($leaveBalance) {
+                    // Deduct PL again
+                    if ($leave->PL > 0) {
+                        $leaveBalance->pl_balance -= $leave->PL;
+                        if ($leaveBalance->pl_balance < 0) {
+                            $leaveBalance->pl_balance = 0;
+                        }
+                    }
 
-    public function rejectLeaveSubmitofhrHead(Request $request)
-    {
-        $request->validate([
-            'leave_id' => 'required',
-            'employee_id' => 'required',
-            'reason' => 'required|string|max:255',
-            'rejected_by' => 'required',
-        ]);
+                    // Deduct SL again
+                    if ($leave->SL > 0) {
+                        $leaveBalance->sl_balance -= $leave->SL;
+                        if ($leaveBalance->sl_balance < 0) {
+                            $leaveBalance->sl_balance = 0;
+                        }
+                    }
 
-        // Update Leave status
-        $leave = Leave::findOrFail($request->leave_id);
+                    // Add LOP again
+                    if ($leave->LOP > 0) {
+                        $leaveBalance->lop_days += $leave->LOP;
+                    }
 
-        $leave->admin_status = 'adminreject';
-        $leave->save();
+                    $leaveBalance->save();
+                }
+            }
+            $leave->admin_status = 'adminapprove';
+            $leave->save();
+            return redirect()->back()->with('success', 'Leave Approved Successfully');
+        }
 
-        // Insert Rejection Reason
-        LeaveRejection::create([
-            'leave_id' => $request->leave_id,
-            'employee_id' => $request->employee_id,
-            'rejected_by' => auth()->user()->id,
-            'status' => 'adminreject',
-            'reason' => $request->reason,
-        ]);
+// public function rejectLeaveSubmitofhrHead($id)
+//         {
+//             $leave = Leave::findOrFail($id);
+//             $leave->admin_status = 'adminreject';
+//             $leave->save();
+//             return redirect()->back()->with('error', 'Leave Rejected');
+//         }
 
-        return redirect()->back()->with('error', 'Leave Rejected Successfully');
-    }
+        // leave approval status of hr head when reject open a dialouge box
+
+        public function rejectLeaveSubmitbyAdmin(Request $request)
+        {
+            $request->validate([
+                'leave_id' => 'required',
+                'employee_id' => 'required',
+                'reason' => 'required|string|max:255',
+                'rejected_by' => 'required',
+            ]);
+
+            // Update Leave status
+            $leave = Leave::findOrFail($request->leave_id);
+
+            if ($leave->admin_status !== 'adminreject') {
+
+                $employeeId = $leave->employee_id;
+                $year = \Carbon\Carbon::parse($leave->leave_from)->year;
+
+                $leaveBalance = Leavebalance::where('employee_id', $employeeId)
+                    ->where('year', $year)
+                    ->first();
+
+                if ($leaveBalance) {
+                    // Restore PL
+                    if ($leave->PL > 0) {
+                        $leaveBalance->pl_balance += $leave->PL;
+                    }
+
+                    // Restore SL
+                    if ($leave->SL > 0) {
+                        $leaveBalance->sl_balance += $leave->SL;
+                    }
+
+                    // Reverse LOP
+                    if ($leave->LOP > 0) {
+                        $leaveBalance->lop_days -= $leave->LOP;
+                        if ($leaveBalance->lop_days < 0) {
+                            $leaveBalance->lop_days = 0;
+                        }
+                    }
+
+                    $leaveBalance->save();
+                }
+
+                // Update leave status
+                $leave->admin_status = 'adminreject';
+                $leave->save();
+
+                // Save rejection reason
+                LeaveRejection::create([
+                    'leave_id' => $request->leave_id,
+                    'employee_id' => $request->employee_id,
+                    'rejected_by' => auth()->user()->id,
+                    'status' => 'adminreject',
+                    'reason' => $request->reason,
+                ]);
+            }
+
+            return redirect()->back()->with('error', 'Leave Rejected Successfully');
+        }
+
 
 
 ////////////////////////////////////////claim approval of HR Head////////////////////////////////////////
+
+
 public function ClaimApprovalStatustoHrhead()
 {
     $claims = Expenseclaim::whereHas('employeeclaimstatusinhrm', function ($query) {
@@ -1001,7 +1584,10 @@ public function rejectClaimSubmitbyAdmin(Request $request)
     return redirect()->back()->with('error', 'Claim Rejected Successfully');
     }
 
-// Add employees in admin
+
+
+/////////////////////// Add hrhead(employees) in admin ///////////////////////
+
 
     // Display the list of employees
     public function SubList()
@@ -1348,6 +1934,214 @@ public function rejectClaimSubmitbyAdmin(Request $request)
         return view('admin.employee_management.employee_directory.offer_letter', compact('employee')); // Pass data to view
     }
 
+
+
+    //////////////////////////////////////////Pay roll//////////////////////////////////////////
+
+
+public function PayrollListOfHr()
+{
+    // Fetch payrolls where the user_role is either 'user' or 'reportmanager' and created by the logged-in manager
+    $payrolls = Payrolls::whereHas('payrool', function ($query) {
+        $query->whereIn('user_role', ['head'])  // Check for both 'user' and 'reportmanager'
+              ->where('created_by', auth()->user()->id);  // Filter by logged-in manager's ID
+    })->latest()->get();
+
+    return view('admin.payroll_management.muster_roll.payrool.payroll', compact('payrolls'));
+}
+
+
+
+
+/////////////////// salary structure //////////////////
+
+
+
+public function HrSalaryLists()
+{
+    // Fetch salary records where the user_role is either 'user' or 'reportmanager' and created by the logged-in manager
+    $sals = Salary::whereHas('employeesalarystructureinhrm', function ($query) {
+        $query->whereIn('user_role', ['head'])  // Check for both 'user' and 'reportmanager'
+              ->where('created_by', auth()->user()->id);  // Filter by logged-in manager's ID
+    })->latest()->get();
+
+    return view('admin.payroll_management.muster_roll.salary_structure.salary_list', compact('sals'));
+}
+
+public function HrAddSalaries()
+    {
+        // Get the logged-in user's (HR Manager's) ID
+        $hrManagerId = auth()->user()->id;
+
+        // Fetch only the employees created by this HR manager
+        $salaries = Subu::where('created_by', $hrManagerId)->get();
+
+        // Pass the filtered employees to the view
+        return view('admin.payroll_management.muster_roll.salary_structure.add_salary', compact('salaries'));
+    }
+
+    public function HrStoreSalaries(Request $request)
+    {
+
+        $request->validate([
+            'employee_id' => 'required',
+            'name' => 'required',
+            'department' => 'required',
+            'doj' => 'required',
+            'gender' => 'required',
+            'grade' => 'required',
+            'account_number' => 'required',
+            'ifsc_code' => 'required',
+            'bank_name' => 'required',
+            'branch_name' => 'required',
+            'basic_salary' => 'required',
+            'house_rent_allowance' => 'required',
+            'conveyance_allowance' => 'required',
+            'lunch_allowance' => 'required',
+            'personal_pay' => 'required',
+            'medical_allowance' => 'required',
+            'other_allowance' => 'required',
+            'leave_travel_allowance' => 'required',
+           //  'total_ammount' => 'required',
+            'professional_tax' => 'required',
+            'esic' => 'required',
+            'net_salary_payables' => 'required',
+            'lop_days' => 'required',
+            'standard_days' => 'required',
+            'salary_for_the_month' => 'required',
+            'no_of_working_day' => 'required',
+            'total_leave_taken' => 'required',
+            'remarks' => 'required'
+
+        ]);
+
+       //   dd($request->all());
+
+        // Create employee record
+        Salary::create([
+           'employee_id' => $request->employee_id,
+           'name' => $request->name,
+           'department' => $request->department,
+           'doj' => $request->doj,
+           'gender' => $request->gender,
+           'grade' => $request->grade,
+           'account_number' => $request->account_number,
+           'ifsc_code' => $request->ifsc_code,
+           'bank_name' => $request->bank_name,
+           'branch_name' => $request->branch_name,
+           'basic_salary' => $request->basic_salary,
+           'house_rent_allowance' => $request->house_rent_allowance,
+           'conveyance_allowance' => $request->conveyance_allowance,
+           'lunch_allowance' => $request->lunch_allowance,
+           'personal_pay' => $request->personal_pay,
+           'medical_allowance' => $request->medical_allowance,
+           'other_allowance' => $request->other_allowance,
+           'leave_travel_allowance' => $request->leave_travel_allowance,
+           // 'total_ammount' => $request->total_ammount,
+           'professional_tax' => $request->professional_tax,
+           'esic' => $request->esic,
+           'net_salary_payables' => $request->net_salary_payables,
+           'lop_days' => $request->lop_days,
+           'standard_days' => $request->standard_days,
+           'salary_for_the_month' => $request->salary_for_the_month,
+           'no_of_working_day' => $request->no_of_working_day,
+           'total_leave_taken' => $request->total_leave_taken,
+           'remarks' => $request->remarks
+
+
+        ]);
+
+
+        $notification = [
+            'message' => 'Employee created successfully',
+            'alert-type' => 'success',
+        ];
+        $employee = Salary::latest()->first();
+        $payslip = Subu::findOrFail($employee->employee_id);
+        Mail::to($payslip->email)->send(new ContactMail($employee, $payslip));
+        return redirect()->route('hrsalaries.lists')->with($notification);
+    }
+
+
+
+    public function HrEditSalaries($id)
+    {
+        $sal = Salary::findOrFail($id);
+
+        return view('admin.payroll_management.muster_roll.salary_structure.edit_salary', compact('sal'));
+    }
+
+
+
+    public function HrupdateSalaries(Request $request)
+    {
+
+        $pid = $request->id;
+
+        Salary::findOrFail($pid)->update([
+           'employee_id' => $request->employee_id,
+           'name' => $request->name,
+           'department' => $request->department,
+           'doj' => $request->doj,
+           'gender' => $request->gender,
+           'grade' => $request->grade,
+           'account_number' => $request->account_number,
+           'ifsc_code' => $request->ifsc_code,
+           'bank_name' => $request->bank_name,
+           'branch_name' => $request->branch_name,
+           'basic_salary' => $request->basic_salary,
+           'house_rent_allowance' => $request->house_rent_allowance,
+           'conveyance_allowance' => $request->conveyance_allowance,
+           'lunch_allowance' => $request->lunch_allowance,
+           'personal_pay' => $request->personal_pay,
+           'medical_allowance' => $request->medical_allowance,
+           'other_allowance' => $request->other_allowance,
+           'leave_travel_allowance' => $request->leave_travel_allowance,
+           // 'total_ammount' => $request->total_ammount,
+           'professional_tax' => $request->professional_tax,
+           'esic' => $request->esic,
+           'net_salary_payables' => $request->net_salary_payables,
+           'lop_days' => $request->lop_days,
+           'standard_days' => $request->standard_days,
+           'salary_for_the_month' => $request->salary_for_the_month,
+           'no_of_working_day' => $request->no_of_working_day,
+           'total_leave_taken' => $request->total_leave_taken,
+           'remarks' => $request->remarks
+
+
+        ]);
+
+        $notification = [
+            'message'       => 'salary updated successfully',
+            'alert-type'    => 'success'
+        ];
+
+        return redirect()->route('hrsalaries.lists')->with($notification);
+
+    }
+
+    // Delete an employee
+    public function HrDeleteSalaries($id)
+    {
+        // Delete the employee by ID
+        Salary::findOrFail($id)->delete();
+
+        $notification = [
+            'message' => 'Salary deleted successfully',
+            'alert-type' => 'success'
+        ];
+
+        return redirect()->route('hrsalaries.lists')->with($notification);
+    }
+    public function HrSalaryView($id)
+    {
+        // Now the $id is passed correctly as a parameter
+        $employee = Salary::findOrFail($id); // Fetch the employee based on the $id
+        $payslip = Subu::findOrFail($employee->employee_id); // Fetch the payslip based on employee's id
+
+        // Return the view with the data
+        return view('admin.payroll_management.muster_roll.salary_structure.view_salary_slip', compact('employee', 'payslip'));
+    }
 
 
 }

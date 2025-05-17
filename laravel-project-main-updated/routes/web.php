@@ -62,6 +62,14 @@ Route::get('/admin/attendances/hr-managers', [AdminController::class, 'viewAllHr
 Route::get('/admin/attendances/report-managers', [AdminController::class, 'viewAllreportmanagerAttendances'])->name('admin.report_managersattendances');
 Route::get('/admin/attendances/employees', [AdminController::class, 'viewAllEmployeesAttendances'])->name('admin.employeesattendances');
 
+///////////////////////////// download attendance reports /////////////////////////////
+
+Route::get('admin/hrheadattendances/download', [AdminController::class, 'downloadHRHeadAttendanceReport'])->name('admin.download.hrheadattendances');
+Route::get('admin/hrmanagerattendances/download', [AdminController::class, 'downloadHRMAttendanceReport'])->name('admin.download.hrmanagerattendances');
+Route::get('admin/reportmanagerattendances/download', [AdminController::class, 'downloadRManagerAttendanceReport'])->name('admin.download.reportmanagerattendances');
+Route::get('admin/employeesattendances/download', [AdminController::class, 'downloadEMPloyeeAttendanceReport'])->name('admin.download.employeesattendances');
+
+
 
 
 
@@ -90,8 +98,6 @@ Route::get('/admin/claims/employee', [AdminController::class, 'viewAllEmployeeCl
     Route::get('/delete/attendance/{id}', [AdminController::class, 'DeleteAttendance'])->name('delete.attendance');
     Route::get('view/attendance', [AdminController::class, 'AttendanceView'])->name('view.attendance');
 
-    // Employee Management/Attendance Status
-    // Route::get('/employee/attendance/status', [AdminController::class, 'AttendanceStatus'])->name('attendance.status');
 
 
 
@@ -113,7 +119,7 @@ Route::get('/admin/claims/employee', [AdminController::class, 'viewAllEmployeeCl
         Route::get('/approve/leave/hrhead/', [AdminController::class, 'LeaveApprovalStatusofhrHead'])->name('approval.hrheadleave');
         Route::get('/hrhead/approve-leave/{id}', [AdminController::class, 'approveLeaveofhrHead'])->name('adminapprove.leave');
         Route::get('/hrhead/reject-leave/{id}', [AdminController::class, 'rejectLeaveofhrHead'])->name('adminreject.leave');
-        Route::post('/hrheadreject-leave', [AdminController::class, 'rejectLeaveSubmitofhrHead'])->name('adminreject.leave.submit');
+        Route::post('/hrheadreject-leave', [AdminController::class, 'rejectLeaveSubmitbyAdmin'])->name('adminreject.leave.submit');
 
 
 
@@ -142,35 +148,26 @@ Route::get('/admin/claims/employee', [AdminController::class, 'viewAllEmployeeCl
 
 
 
+        /////payroll/////
+Route::get('/muster_roll/payroll/admin', [AdminController::class, 'PayrollListOfHr'])->name('admin.hr.payroll');
 
-        // Route::get('/approve/leave/employee/', [HrManagerController::class, 'LeaveApprovalStatus'])->name('approval.status');
-        // Route::get('/approve-leave/{id}', [HrManagerController::class, 'approveLeave'])->name('mapprove.leave');
-        // Route::get('/reject-leave/{id}', [HrManagerController::class, 'rejectLeave'])->name('mreject.leave');
-        // Route::post('/mreject-leave', [HrManagerController::class, 'rejectLeaveSubmit'])->name('mreject.leave.submit');
-
-
-
-
-    // Route::get('/view/payslipss/{id}', [EmployeeController::class, 'viewPayslip'])->name('view.mypayslip');
-
-    // Route::get('/employee/details/payslip/{employee_id}', [AdminController::class, 'getEmployeeDetailedforpayslip']);
-
-
-
-
-    // Route::get('/salary/list', [AdminController::class, 'SalaryList'])->name('salary.list');
-    // Route::get('/add/salary', [AdminController::class, 'AddSalary'])->name('add.salary');
-    // Route::post('/store/salary', [AdminController::class, 'StoreSalary'])->name('store.salary');
-    // Route::get('/edit/salary/{id}', [AdminController::class, 'EditSalary'])->name('edit.salary');
-    // Route::put('/update-step/{id}', [AdminController::class, 'updateSalary'])->name('update.salary');
-    // Route::get('/delete/salary/{id}', [AdminController::class, 'DeleteSalary'])->name('delete.salary');
-    // Route::get('salary/view', [AdminController::class, 'SalaryView'])->name('view.salary');
+/////////////////////// salary structure of hr manager ///////////////////////
+Route::controller(AdminController::class)->group(function() {
+    Route::get('/hr/salaries/lists', 'HrSalaryLists')->name('hrsalaries.lists');
+    Route::get('/adds/hr/salaries', 'HrAddSalaries')->name('add.hrsalaries');
+    Route::post('/stores/hr/salaries', 'HrStoreSalaries')->name('store.hrsalaries');
+    Route::get('/edits/hr/salaries/{id}', 'HrEditSalaries')->name('edit.hrsalaries');
+    Route::put('/salaries/hr/updates-step/{id}', 'HrupdateSalaries')->name('update.hrsalaries');
+    Route::get('/deletes/hr/salaries/{id}', 'HrDeleteSalaries')->name('delete.hrsalaries');
+    Route::get('salaries/hr/views/{id}', 'HrSalaryView')->name('view.hrsalaries');
+});
 
 
+/////////////////////////////////////
 
+        //  HR CONTROLLER
 
-
-
+/////////////////////////////////////
 
 
 
@@ -196,8 +193,7 @@ Route::middleware(['auth' , 'role:head'])->group(function(){
     Route::get('/hr_head/delete_hr_manager/{id}', [HrController::class, 'DeleteHrManager'])->name('delete.hrmanager');
     Route::get('employees/view/{id}', [HrController::class, 'HrManagerView'])->name('view.employees');
     Route::get('employee/offer/{id}', [HrController::class, 'viewsOfferLetter'])->name('offer.employee');
-    // Route::get('employee/view/{id}', 'EmployeeView')->name('view.employee');
-    // Route::get('employee/offer/{id}', 'viewsOfferLetter')->name('offer.employee');
+
 
     // add attendance of hr head
     Route::get('/hr_head/attendance', [HrController::class, 'HrHeadAttendanceList'])->name('hrhead.attendance');
@@ -242,28 +238,25 @@ Route::get('/hrmanager/employee/claim/status', [HrController::class, 'viewAllEmp
     Route::get('/manager/{id}/employees', [HrController::class, 'viewAllEmployees'])->name('manager.employees');
 
 
-    // attendance status
-    // Route::get('/all/attendance/status', [HrController::class, 'AttendanceStatusinHR'])->name('all.attendance');
-    // leave status
-
-    Route::controller(HrController::class)->group(function() {
-        Route::get('/salaries/list', 'SalaryLists')->name('salaries.lists');
-        Route::get('/add/salaries', 'AddSalaries')->name('add.salaries');
-        Route::post('/store/salaries', 'StoreSalaries')->name('store.salaries');
-        Route::get('/edit/salaries/{id}', 'EditSalaries')->name('edit.salaries');
-        Route::put('/salaries/update-step/{id}', 'updateSalaries')->name('update.salaries');
-        Route::get('/delete/salaries/{id}', 'DeleteSalaries')->name('delete.salaries');
-        Route::get('salaries/view', 'SalaryView')->name('view.salaries');
 
 
-    });
-    Route::get('/payslips/list', [HrController::class, 'PayslipLists'])->name('mypayslip.lists');
-    Route::get('/add/payslips', [HrController::class, 'AddPayslips'])->name('add.payslips');
-    Route::post('/store/payslips', [HrController::class, 'StorePayslips'])->name('store.payslips');
-    Route::get('/edit/payslips/{id}', [HrController::class, 'EditPayslips'])->name('edit.payslips');
-    Route::put('/update/payslips/{id}', [HrController::class, 'UpdatePayslips'])->name('update.payslips');
-    Route::get('/delete/payslips/{id}', [HrController::class, 'DeletePayslips'])->name('delete.payslips');
-    Route::get('/downloads/payslips/{id}', [HrController::class, 'DownloadPayslips'])->name('download.payslips');
+
+
+/////////////////////// salary structure of hr manager ///////////////////////
+Route::controller(HrController::class)->group(function() {
+    Route::get('/hrm/salaries/lists', 'HrmSalaryLists')->name('hrmsalaries.lists');
+    Route::get('/adds/hrm/salaries', 'HrmAddSalaries')->name('add.hrmsalaries');
+    Route::post('/stores/hrm/salaries', 'HrmStoreSalaries')->name('store.hrmsalaries');
+    Route::get('/edits/hrm/salaries/{id}', 'HrmEditSalaries')->name('edit.hrmsalaries');
+    Route::put('/salaries/hrm/updates-step/{id}', 'HrmupdateSalaries')->name('update.hrmsalaries');
+    Route::get('/deletes/hrm/salaries/{id}', 'HrmDeleteSalaries')->name('delete.hrmsalaries');
+    Route::get('salaries/hrm/views/{id}', 'HrmSalaryView')->name('view.hrmsalaries');
+
+
+});
+
+
+
 
 
         // leave status of  manager
@@ -291,6 +284,24 @@ Route::get('/hrmanager/employee/claim/status', [HrController::class, 'viewAllEmp
 
         Route::get('/request/hrhead_update_request', [HrController::class, 'UpdateRequestHr'])->name('update.request.hr');
         Route::post('/submit-form/hrhead', [HrController::class, 'submitByHrHead'])->name('forms.submit');
+
+////////////////////////////payroll////////////////////////////
+
+        Route::get('/muster_roll/payroll/hr', [HrController::class, 'PayrollListOfHrm'])->name('hr.hrm.payroll');
+
+
+///////////view payslip/////////////
+
+Route::get('/hr/payslip', [HrController::class, 'PayslipPageHr'])->name('hr.payslip');
+Route::get('/payslip/hr/views', [HrController::class, 'HrPayslipView'])->name('view.hrpayslip');
+
+
+
+    Route::get('/hr/hrmattendance/report/download', [HrController::class, 'downloadHrmAttendanceReport'])->name('hr.download.hrmattendance');
+    Route::get('/hr/rmattendance/report/download', [HrController::class, 'DownloadRMAttendanceReport'])->name('hr.download.rmattendance');
+    Route::get('/hr/employeeattendance/report/download', [HrController::class, 'DownloadEmpLoyeeAttendanceReport'])->name('hr.download.employeeattendance');
+
+
 
 
 });
@@ -349,8 +360,10 @@ Route::middleware(['auth' , 'role:manager'])->group(function(){
 
     // leave status of reporting manager
     Route::get('/approve/leave/rm/', [HrManagerController::class, 'LeaveApprovalStatusOfRm'])->name('approval.rmstatus');
-    Route::get('/rm/approve-leave/{id}', [HrManagerController::class, 'approveLeave'])->name('mapprove.leave');
+    Route::get('/rm/approve-leave/{id}', [HrManagerController::class, 'approveLeaveOfRm'])->name('mapprove.leave');
     Route::get('/rm/reject-leave/{id}', [HrManagerController::class, 'rejectLeaveOfRm'])->name('mreject.leave');
+    Route::post('/rm/mreject-leave', [HrManagerController::class, 'rejectLeaveSubmitbyHrm'])->name('mreject.leave.submit');
+
 
 
     // claim status of employees
@@ -362,10 +375,7 @@ Route::middleware(['auth' , 'role:manager'])->group(function(){
     Route::post('/reject-claim-submit', [HrManagerController::class, 'rejectClaimSubmit'])->name('reject.claim.submit');
 
 
-    // salary aproval status of employees
-    // Route::get('/salary/approval/list', 'SalaryList')->name('salaryapproval.list');
-    Route::get('/salary/approval/list', [HrManagerController::class, 'SalaryApproval'])->name('salaryapproval.list');
-    Route::get('/add/salary/approval', [HrManagerController::class, 'AddSalaryApproval'])->name('add.salaryapproval');
+
 
 
 
@@ -375,6 +385,10 @@ Route::middleware(['auth' , 'role:manager'])->group(function(){
 
    Route::get('/hrm/rm/attendances/status', [HrManagerController::class, 'viewRmAttendances'])->name('hrm.rm.attendance');
    Route::get('/hrm/employee/attendances/status', [HrManagerController::class, 'viewEmployeeAttendances'])->name('hrm.employee.attendance');
+
+   //////////download attendance report of employees//////////
+    Route::get('/hrm/employeeattendance/report/download', [HrManagerController::class, 'downloadEmployeeAttendanceReport'])->name('hrm.download.employeeattendance');
+    Route::get('/hrm/rmattendance/report/download', [HrManagerController::class, 'downloadRmAttendanceReport'])->name('hrm.download.rmattendance');
 
 
     Route::get('/attendance/approve/{id}', [HRManagerController::class, 'approveAttendance'])->name('attendance.approve');
@@ -423,6 +437,11 @@ Route::middleware(['auth' , 'role:manager'])->group(function(){
 
     // carrer portal
     // apply
+
+
+    // Route::get('/carrerportal', [HrManagerController::class, 'ApplyinJobSite']);
+
+
     Route::get('/apply/candidate/list/', [HrManagerController::class, 'ApplyListing'])->name('apply.list');
     Route::get('/add/apply/candidate/list/', [HrManagerController::class, 'AddApply'])->name('add.apply');
     Route::post('/apply/store/leave', [HrManagerController::class, 'StoreApply'])->name('store.apply');
@@ -487,6 +506,13 @@ Route::get('/request/update_request', [HrManagerController::class, 'UpdateReques
 Route::post('/submit-form/hrm', [HrManagerController::class, 'submitByHrm'])->name('form.submits');
 
 
+
+///////////view payslip/////////////
+
+Route::get('/hrm/payslip', [HrManagerController::class, 'PayslipPage'])->name('hrm.payslip');
+Route::get('/payslip/hrm/views', [HrManagerController::class, 'HrmPayslipView'])->name('view.hrmpayslip');
+
+
 });
 
 Route::middleware(['auth' , 'role:user'])->group(function(){
@@ -527,13 +553,14 @@ Route::middleware(['auth' , 'role:user'])->group(function(){
     Route::get('/employee/track/claim/approval/status', [EmployeeController::class, 'trackClaimStatus'])->name('track.claimapprovalstatus');
 
     Route::get('/downloads/payslipss/{id}', [EmployeeController::class, 'DownPayslip'])->name('download.mypayslip');
-    Route::get('/payslip/employee/views', [EmployeeController::class, 'EmpPayslipView'])->name('view.mypayslip');
 
 
 
 
     // Employee Pay Slip
     Route::get('/employee/payslip/', [EmployeeController::class, 'ListPaylip'])->name('payslip');
+    Route::get('/payslip/employee/views', [EmployeeController::class, 'EmpPayslipView'])->name('view.mypayslip');
+
 
 
     // Expense Claim Form
@@ -808,6 +835,12 @@ Route::post('/rmreject-leave', [RmController::class, 'rejectLeaveSubmitbyRm'])->
     Route::get('/rm/permanent/request/status', [RmController::class, 'ApprovePermanentstatusinRM'])->name('permanent.Status');
     Route::post('/rm/approve/permanent/{id}', [RmController::class, 'updatePermanentStatus'])->name('rm.rmapprove.permanent');
 
+
+    Route::get('/rm/payslip/', [RmController::class, 'ListRmPayslip'])->name('rm.payslip');
+    Route::get('/rm/payslip/views', [RmController::class, 'RmPayslipView'])->name('view.rmpayslip');
+
+
+Route::get('rm/employee/attendance/download', [RmController::class, 'downloadEmployeeAttendanceReports'])->name('rm.download.employeeattendance');
 
 
 

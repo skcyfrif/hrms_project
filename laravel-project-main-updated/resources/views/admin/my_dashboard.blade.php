@@ -13,8 +13,8 @@
         </div>
         <div class="d-flex align-items-center flex-wrap text-nowrap">
             <div class="input-group flatpickr wd-200 me-2 mb-2 mb-md-0" id="dashboardDate">
-                <span class="input-group-text input-group-addon bg-transparent border-primary"
-                    data-toggle><i data-feather="calendar" class="text-primary"></i></span>
+                <span class="input-group-text input-group-addon bg-transparent border-primary" data-toggle><i
+                        data-feather="calendar" class="text-primary"></i></span>
                 <input type="text" class="form-control bg-transparent border-primary text-white"
                     placeholder="Select date" data-input>
             </div>
@@ -85,16 +85,16 @@
                 <div class="card shadow-sm bg-light">
                     <div class="card-header bg-danger text-white">
 
-                    <a href="{{ route('admin.hr_headsattendances', ['date' => now()->toDateString()]) }}"
-                        class="btn btn-primary">
-                        Attendance Snapshot
-                        {{-- Attendance Snapshot ({{ $presentCount }}) --}}
-                    </a>
-                    {{-- <a href="#"
+                        <a href="{{ route('admin.hr_headsattendances', ['date' => now()->toDateString()]) }}"
+                            class="btn btn-primary">
+                            Attendance Snapshot
+                            {{-- Attendance Snapshot ({{ $presentCount }}) --}}
+                        </a>
+                        {{-- <a href="#"
                         class="btn btn-primary">
                         Attendance Snapshot
                     </a> --}}
-                </div>
+                    </div>
                     <div class="card-body">
                         <ul class="list-group">
 
@@ -108,13 +108,13 @@
             <div class="col-md-6">
                 <div class="card shadow-sm bg-light">
                     <div class="card-header bg-danger text-white">
-                    <a href="{{ route('approval.hrheadleave') }}" class="btn btn-primary">
-                        Quick access to approve/reject leave requests
+                        <a href="{{ route('approval.hrheadleave') }}" class="btn btn-primary">
+                            Quick access to approve/reject leave requests
 
-                        {{-- ({{ $pendingLeaveCountemplyee }}) --}}
-                    </a>
+                            {{-- ({{ $pendingLeaveCountemplyee }}) --}}
+                        </a>
 
-                </div>
+                    </div>
                     <div class="card-body">
                         <ul class="list-group">
                             {{-- Employees --}}
@@ -127,12 +127,12 @@
             <div class="col-md-6">
                 <div class="card shadow-sm bg-light">
                     <div class="card-header bg-danger text-white">
-                    <a href="{{ route('hrheadclaimapproval.status') }}" class="btn btn-primary">
-                        Quick access to approve/reject Claim requests
-                        {{-- ({{ $pendingClaimCount }}) --}}
-                    </a>
+                        <a href="{{ route('hrheadclaimapproval.status') }}" class="btn btn-primary">
+                            Quick access to approve/reject Claim requests
+                            {{-- ({{ $pendingClaimCount }}) --}}
+                        </a>
 
-                </div>
+                    </div>
                     <div class="card-body">
                         <ul class="list-group">
                             {{-- Employess --}}

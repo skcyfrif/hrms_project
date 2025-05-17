@@ -1,0 +1,60 @@
+@extends('admin.admin_dashboard')
+@section('admin')
+    <div class="page-content">
+
+        <nav class="page-breadcrumb">
+            <ol class="breadcrumb">
+                <a href="{{ route('add.hrsalaries') }}" class="btn btn-inverse-info">Add Salary Details of Employee</a>
+            </ol>
+        </nav>
+
+        <div class="row">
+            <div class="col-md-12 grid-margin stretch-card">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title">All Hr Manager</h6>
+                        <div class="table-responsive">
+                            <table id="dataTableExample" class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Sl</th>
+                                        <th>employee_id </th>
+                                        <th>name</th>
+                                        <th>email</th>
+                                        <th>designation</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($sals as $key => $item)
+                                        <tr>
+                                            <td>{{ $key + 1 }}</td>
+                                            <td>{{ $item->employeesalarystructureinhrm->employee_id }}</td>
+                                            <td>{{ $item->name }}</td>
+                                            <td>{{ $item->employeesalarystructureinhrm->email }}</td>
+                                            <td>{{ $item->employeesalarystructureinhrm->designation }}</td>
+                                            <td>
+                                                <a href="{{ route('edit.hrsalaries', $item->id) }}"
+                                                    class="btn btn-inverse-warning"> Edit</a>
+                                                <a href="{{ route('delete.hrsalaries', $item->id) }}"
+                                                    class="btn btn-inverse-danger" id="delete"> Delete</a>
+                                                <a href="{{ route('view.hrsalaries', $item->id) }}"
+                                                    class="btn btn-inverse-danger"
+                                                    style="background-color: #28a745; color: white; border: 1.5px solid #155724;">
+                                                    View payslip</a>
+
+                                            </td>
+
+                                        </tr>
+                                    @endforeach
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+@endsection

@@ -22,7 +22,7 @@
                                         <th>leave to</th>
                                         <th>total days</th>
                                         <th>reason</th>
-                                        {{-- <th>m Status</th> --}}
+
                                         <th>Rm Status</th>
                                         <th>file</th>
                                         <th>Action</th>
@@ -32,34 +32,21 @@
                                     @foreach ($approvals as $key => $leave)
                                         <tr>
                                             <td>{{ $key + 1 }}</td>
-                                            {{-- <td>{{ $leave->employee_id }}</td> --}}
+
                                             <td>{{ $leave->employeeleavestatusinrm->employee_id }}</td>
                                             <td>{{ $leave->name }}</td>
                                             <td>{{ $leave->leave_from }}</td>
                                             <td>{{ $leave->leave_to }}</td>
                                             <td>{{ $leave->total_days }}</td>
                                             <td>{{ $leave->reason }}</td>
-                                            {{-- <td>
-                                                @if ($leave->m_status === 'mapprove')
-                                                    <span class="badge bg-success fs-6 px-3 py-2">Approved</span>
 
-                                                @elseif($leave->m_status === 'mreject')
-                                                    <span class="badge bg-danger fs-6 px-3 py-2">Rejected</span>
-                                                @else
-                                                    <span class="badge bg-warning text-dark fs-6 px-3 py-2">Pending</span>
-
-                                                @endif
-                                            </td> --}}
                                             <td>
                                                 @if ($leave->rm_status === 'rmapprove')
                                                     <span class="badge bg-success fs-6 px-3 py-2">Approved</span>
-
                                                 @elseif($leave->rm_status === 'rmreject')
                                                     <span class="badge bg-danger fs-6 px-3 py-2">Rejected</span>
-
                                                 @else
                                                     <span class="badge bg-warning text-dark fs-6 px-3 py-2">Pending</span>
-
                                                 @endif
                                             </td>
                                             <td>
@@ -71,7 +58,7 @@
                                                 @endif
                                             </td>
 
-                                            <td>
+                                            {{-- <td>
                                                 @if ($leave->rm_status == 'rmapprove')
                                                     <!-- Show Reject button when leave is approved -->
                                                     <button class="btn btn-inverse-danger rejectBtn"
@@ -96,6 +83,47 @@
                                                         data-employee="{{ $leave->employee_id }}">
                                                         Reject
                                                     </button>
+                                                @endif
+                                            </td> --}}
+
+
+                                            {{-- <td>
+                                                @if ($leave->rm_status == 'rmpending')
+                                                    <!-- Show both Approve and Reject buttons -->
+                                                    <a href="{{ route('rmapprove.leave', $leave->id) }}"
+                                                        class="btn btn-inverse-success">
+                                                        Approve
+                                                    </a>
+                                                    <a href="{{ route('rmreject.leave', $leave->id) }}"
+                                                        class="btn btn-inverse-danger">
+                                                        Reject
+                                                    </a>
+                                                @elseif ($leave->rm_status == 'rmapprove')
+                                                    <span class="badge badge-success">Approved</span>
+                                                @elseif ($leave->rm_status == 'rmreject')
+                                                    <span class="badge badge-danger">Rejected</span>
+                                                @endif
+                                            </td> --}}
+
+
+                                            <td>
+                                                @if ($leave->rm_status == 'rmpending')
+                                                    <!-- Show both Approve & Reject buttons when leave is pending -->
+                                                    <a href="{{ route('rmapprove.leave', $leave->id) }}"
+                                                        class="btn btn-inverse-success">
+                                                        Approve
+                                                    </a>
+                                                    <button class="btn btn-inverse-danger rejectBtn"
+                                                        data-id="{{ $leave->id }}"
+                                                        data-employee="{{ $leave->employee_id }}">
+                                                        Reject
+                                                    </button>
+                                                @elseif ($leave->rm_status == 'rmapprove')
+                                                    <!-- Approved: Show status only -->
+                                                    <span class="badge bg-success fs-6 px-3 py-2">Approved</span>
+                                                @elseif ($leave->rm_status == 'rmreject')
+                                                    <!-- Rejected: Show status only -->
+                                                    <span class="badge bg-danger fs-6 px-3 py-2">Rejected</span>
                                                 @endif
                                             </td>
 

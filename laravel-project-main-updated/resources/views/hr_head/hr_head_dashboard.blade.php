@@ -19,7 +19,7 @@ License: For each use you must have a valid license purchased only from above li
     <meta name="keywords"
         content="nobleui, bootstrap, bootstrap 5, bootstrap5, admin, dashboard, template, responsive, css, sass, html, theme, front-end, ui kit, web">
 
-    <title>Hr Head Panel - Realestate</title>
+    <title>Hr Head Panel</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -68,7 +68,9 @@ License: For each use you must have a valid license purchased only from above li
             @include('hr_head.body.header')
             <!-- partial -->
 
+
             @yield('hr_head')
+
 
             <!-- partial:partials/_footer.html -->
             @include('hr_head.body.footer')

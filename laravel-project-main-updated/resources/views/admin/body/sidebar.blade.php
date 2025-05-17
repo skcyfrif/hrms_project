@@ -238,6 +238,18 @@
                 </a>
             </li>
 
+            <li class="nav-item nav-category">Muster Roll</li>
+            <li class="nav-item">
+                <a href="{{ route('admin.hr.payroll') }}" class="nav-link">
+                    <i class="link-icon" data-feather="check-square"></i>
+                    <span class="link-title">payroll</span>
+                </a>
+                <a href="{{ route('hrsalaries.lists') }}" class="nav-link">
+                    <i class="link-icon" data-feather="check-square"></i>
+                    <span class="link-title">Salary Structure</span>
+                </a>
+            </li>
+
         </ul>
     </div>
 </nav>

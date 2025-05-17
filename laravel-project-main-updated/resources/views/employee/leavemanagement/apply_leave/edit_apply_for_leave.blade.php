@@ -132,9 +132,9 @@
 
 
                                     <div class="col-md-6">
-                                        <label for="reason" class="form-label">Reason</label>
+                                        <label for="reason" class="form-label">Leave Type</label>
                                         <select class="form-control" id="reason" name="reason" required>
-                                            <option value="" disabled>Select Reason</option>
+                                            <option value="" disabled>Select Leave Type</option>
 
                                             <option value="PL" {{ $test->reason == 'PL' ? 'selected' : '' }}>PL
                                             </option>
@@ -155,7 +155,7 @@
                                     <div class="col-md-6">
                                         <label for="remarks" class="form-label">Remarks</label>
                                         <input type="text" class="form-control" id="remarks" name="remarks"
-                                            value="{{ old('remarks', $test->remarks) }}" required>
+                                            value="{{ old('remarks', $test->remarks) }}">
 
                                         @error('remarks')
                                             <div class="text-danger mt-1">{{ $message }}</div>

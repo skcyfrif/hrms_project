@@ -118,7 +118,7 @@
                 <div class="collapse" id="Support">
                     <ul class="nav sub-menu">
                         <li class="nav-item">
-                            <a href="{{route('make.permanent')}}" class="nav-link">Apply Request</a>
+                            <a href="{{route('make.permanent')}}" class="nav-link">Request Corner</a>
                         </li>
                         <li class="nav-item">
                         </li>

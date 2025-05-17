@@ -41,7 +41,8 @@
                                             <label for="name"
                                                 class="form-label @error('name') is-invalid @enderror">Name</label>
                                             <input type="text" class="form-control" id="name" name="name"
-                                                value="{{ old('name') }}">
+                                                value="{{ old('name') }}"
+                                                oninput="this.value = this.value.replace(/[^a-zA-Z\s]/g, '')">
                                             @error('name')
                                                 <div class="text-danger mt-1">{{ $message }}</div>
                                             @enderror
@@ -71,7 +72,8 @@
                                                 class="form-label @error('phone_number') is-invalid @enderror">Phone
                                                 Number</label>
                                             <input type="text" class="form-control" id="phone_number" name="phone_number"
-                                                value="{{ old('phone_number') }}">
+                                                value="{{ old('phone_number') }}"
+                                                oninput="this.value = this.value.replace(/[^0-9]/g, '')" maxlength="10">
                                             @error('phone_number')
                                                 <div class="text-danger mt-1">{{ $message }}</div>
                                             @enderror
@@ -170,7 +172,9 @@
                                                 class="form-label @error('permanent_pin') is-invalid @enderror">Pin
                                                 Code</label>
                                             <input type="text" class="form-control" id="permanent_pin"
-                                                name="permanent_pin" value="{{ old('permanent_pin') }}">
+                                                name="permanent_pin" value="{{ old('permanent_pin') }}"
+                                                oninput="this.value = this.value.replace(/[^0-9]/g, '')" maxlength="6">
+
                                             @error('permanent_pin')
                                                 <div class="text-danger mt-1">{{ $message }}</div>
                                             @enderror
@@ -239,7 +243,9 @@
                                                 class="form-label @error('current_pin') is-invalid @enderror">Current Pin
                                                 Code</label>
                                             <input type="text" class="form-control" id="current_pin"
-                                                name="current_pin" value="{{ old('current_pin') }}">
+                                                name="current_pin" value="{{ old('current_pin') }}"
+                                                oninput="this.value = this.value.replace(/[^0-9]/g, '')" maxlength="6">
+
                                             @error('current_pin')
                                                 <div class="text-danger mt-1">{{ $message }}</div>
                                             @enderror
@@ -252,7 +258,9 @@
                                                 class="form-label @error('emergency_contact') is-invalid @enderror">Emergency
                                                 Contact</label>
                                             <input type="text" class="form-control" id="emergency_contact"
-                                                name="emergency_contact" value="{{ old('emergency_contact') }}">
+                                                name="emergency_contact" value="{{ old('emergency_contact') }}"
+                                                oninput="this.value = this.value.replace(/[^0-9]/g, '')" maxlength="10">
+
                                             @error('emergency_contact')
                                                 <div class="text-danger mt-1">{{ $message }}</div>
                                             @enderror
@@ -356,7 +364,9 @@
                                                 class="form-label @error('account_number') is-invalid @enderror">Account
                                                 Number</label>
                                             <input type="text" class="form-control" id="account_number"
-                                                name="account_number" value="{{ old('account_number') }}">
+                                                name="account_number" value="{{ old('account_number') }}"
+                                                oninput="this.value = this.value.replace(/[^0-9]/g, '')" maxlength="18">
+
                                             @error('account_number')
                                                 <div class="text-danger mt-1">{{ $message }}</div>
                                             @enderror
@@ -366,7 +376,9 @@
                                                 class="form-label @error('ifsc_code') is-invalid @enderror">IFSC
                                                 CODE</label>
                                             <input type="text" class="form-control" id="ifsc_code" name="ifsc_code"
-                                                value="{{ old('ifsc_code') }}">
+                                                value="{{ old('ifsc_code') }}"
+                                                oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '')"
+                                                maxlength="11">
                                             @error('ifsc_code')
                                                 <div class="text-danger mt-1">{{ $message }}</div>
                                             @enderror
@@ -481,7 +493,8 @@
                                                 class="form-label @error('basic_salary') is-invalid @enderror">Basic
                                                 Salary</label>
                                             <input type="text" class="form-control" id="basic_salary"
-                                                name="basic_salary" value="{{ old('basic_salary') }}">
+                                                name="basic_salary" value="{{ old('basic_salary') }}"
+                                                oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                             @error('basic_salary')
                                                 <div class="text-danger mt-1">{{ $message }}</div>
                                             @enderror
@@ -492,7 +505,8 @@
                                                 class="form-label @error('house_rent_allowance') is-invalid @enderror">House
                                                 Rent Allowance</label>
                                             <input type="text" class="form-control" id="house_rent_allowance"
-                                                name="house_rent_allowance" value="{{ old('house_rent_allowance') }}">
+                                                name="house_rent_allowance" value="{{ old('house_rent_allowance') }}"
+                                                oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                             @error('house_rent_allowance')
                                                 <div class="text-danger mt-1">{{ $message }}</div>
                                             @enderror
@@ -503,7 +517,8 @@
                                                 class="form-label @error('conveyance_allowance') is-invalid @enderror">Conveyance
                                                 Allowance</label>
                                             <input type="text" class="form-control" id="conveyance_allowance"
-                                                name="conveyance_allowance" value="{{ old('conveyance_allowance') }}">
+                                                name="conveyance_allowance" value="{{ old('conveyance_allowance') }}"
+                                                oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                             @error('conveyance_allowance')
                                                 <div class="text-danger mt-1">{{ $message }}</div>
                                             @enderror
@@ -514,7 +529,8 @@
                                                 class="form-label @error('lunch_allowance') is-invalid @enderror">Lunch
                                                 Allowance</label>
                                             <input type="text" class="form-control" id="lunch_allowance"
-                                                name="lunch_allowance" value="{{ old('lunch_allowance') }}">
+                                                name="lunch_allowance" value="{{ old('lunch_allowance') }}"
+                                                oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                             @error('lunch_allowance')
                                                 <div class="text-danger mt-1">{{ $message }}</div>
                                             @enderror
@@ -525,7 +541,8 @@
                                                 class="form-label @error('personal_pay') is-invalid @enderror">Personal
                                                 Pay</label>
                                             <input type="text" class="form-control" id="personal_pay"
-                                                name="personal_pay" value="{{ old('personal_pay') }}">
+                                                name="personal_pay" value="{{ old('personal_pay') }}"
+                                                oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                             @error('personal_pay')
                                                 <div class="text-danger mt-1">{{ $message }}</div>
                                             @enderror
@@ -536,7 +553,8 @@
                                                 class="form-label @error('medical_allowance') is-invalid @enderror">Medical
                                                 Allowance</label>
                                             <input type="text" class="form-control" id="medical_allowance"
-                                                name="medical_allowance" value="{{ old('medical_allowance') }}">
+                                                name="medical_allowance" value="{{ old('medical_allowance') }}"
+                                                oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                             @error('medical_allowance')
                                                 <div class="text-danger mt-1">{{ $message }}</div>
                                             @enderror
@@ -547,7 +565,8 @@
                                                 class="form-label @error('other_allowance') is-invalid @enderror">Other
                                                 Allowance</label>
                                             <input type="text" class="form-control" id="other_allowance"
-                                                name="other_allowance" value="{{ old('other_allowance') }}">
+                                                name="other_allowance" value="{{ old('other_allowance') }}"
+                                                oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                             @error('other_allowance')
                                                 <div class="text-danger mt-1">{{ $message }}</div>
                                             @enderror
@@ -559,7 +578,8 @@
                                                 Travel Allowance</label>
                                             <input type="text" class="form-control" id="leave_travel_allowance"
                                                 name="leave_travel_allowance"
-                                                value="{{ old('leave_travel_allowance') }}">
+                                                value="{{ old('leave_travel_allowance') }}"
+                                                oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                             @error('leave_travel_allowance')
                                                 <div class="text-danger mt-1">{{ $message }}</div>
                                             @enderror
@@ -591,7 +611,8 @@
                                                     class="form-label @error('professional_tax') is-invalid @enderror">Professional
                                                     Tax</label>
                                                 <input type="text" class="form-control" id="professional_tax"
-                                                    name="professional_tax" value="{{ old('professional_tax') }}">
+                                                    name="professional_tax" value="{{ old('professional_tax') }}"
+                                                    oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                                 @error('professional_tax')
                                                     <div class="text-danger mt-1">{{ $message }}</div>
                                                 @enderror
@@ -600,7 +621,8 @@
                                                 <label for="esic"
                                                     class="form-label @error('esic') is-invalid @enderror">ESIC</label>
                                                 <input type="text" class="form-control" id="esic" name="esic"
-                                                    value="{{ old('esic') }}">
+                                                    value="{{ old('esic') }}"
+                                                    oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                                 @error('esic')
                                                     <div class="text-danger mt-1">{{ $message }}</div>
                                                 @enderror

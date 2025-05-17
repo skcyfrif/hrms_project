@@ -23,6 +23,7 @@
                 </div>
                 <div class="card-body">
                     <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><strong>Id:</strong> {{ $employee->employee_id }}</li>
                         <li class="list-group-item"><strong>Name:</strong> {{ $employee->name }}</li>
                         <li class="list-group-item"><strong>Email:</strong> {{ $employee->email }}</li>
                         <li class="list-group-item"><strong>Department:</strong> {{ $employee->department }}</li>

@@ -224,6 +224,21 @@ class RmController extends Controller
         return redirect()->back()->with($notification);
     }
 
+// ✅ Step 2: Check if date falls within an approved leave
+    $onLeave = Leave::where('employee_id', $request->employee_id)
+        ->whereDate('leave_from', '<=', $request->date)
+        ->whereDate('leave_to', '>=', $request->date)
+        ->where('m_status', 'mapprove')
+        ->exists();
+
+    if ($onLeave) {
+        return redirect()->back()->with([
+            'message' => 'Cannot mark attendance: This date falls within an approved leave period.',
+            'alert-type' => 'error'
+        ]);
+    }
+
+
     // Insert employee data
     Employeeattendance::create([
         'employee_id' => $request->employee_id,
@@ -301,6 +316,7 @@ public function AddRmLeave()
     $user = auth()->user();
     $employee = Subu::where('user_id', $user->id)->first();
 
+
 // Return the view with the user and employee data
 return view('report_manager.leave_management.apply_leaves.add_apply_for_leave', compact('user', 'employee'));
 
@@ -308,72 +324,166 @@ return view('report_manager.leave_management.apply_leaves.add_apply_for_leave', 
 
 public function StoreRmLeave(Request $request)
 {
-    $employee = Subu::find($request->employee_id);
-    $leave_type = $request->reason;
-    $total_days = $request->total_days;
-
-    $leaveBalance = Leavebalance::firstOrCreate(
-        ['employee_id' => $request->employee_id, 'year' => now()->year],
-        ['annual_leave_entitlement' => ($employee->employment_type == 'permanent' ? 18 : 0), 'pl_balance' => 18, 'sl_balance' => 3, 'lop_days' => 0]
-    );
-
-    if ($leave_type == 'PL' && $leaveBalance->pl_balance >= $total_days) {
-        $leaveBalance->pl_balance -= $total_days;
-    } elseif ($leave_type == 'SL' && $leaveBalance->sl_balance >= $total_days) {
-        $leaveBalance->sl_balance -= $total_days;
-    } else {
-        $leave_type = 'LOP';
-        $leaveBalance->lop_days += $total_days;
-    }
-    $leaveBalance->save();
+    // Validate input
     $request->validate([
-        'employee_id' => 'required',
+        'employee_id' => 'required|exists:subus,id',
         'name' => 'required',
         'designation' => 'required',
         'department' => 'required',
-        'leave_from' => 'required',
-        'leave_to' => 'required',
-        'total_days' => 'required',
-        'reason' => 'required',
+        'leave_from' => 'required|date',
+        'leave_to' => 'required|date|after_or_equal:leave_from',
+        'total_days' => 'required|numeric|min:1',
+        'reason' => 'required|in:PL,SL,LOP',
         'remarks' => 'nullable',
-        // 'upload' => 'required'
-        'upload' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048'
+        'upload' => 'nullable|file',
     ]);
 
 
-$uploadPath = null;
-if ($request->hasFile('upload')) {
-    $upload = $request->file('upload');
-    $uploadName = time() . '_' . $upload->getClientOriginalName(); // Generate a unique name
-    $uploadPath = 'leaveupload/' . $uploadName;
-    $upload->move(public_path('leaveupload'), $uploadName); // Move file to public/leaveupload
-}
+    // ✅ Step 2: Overlapping Leave Check
+    $overlap = Leave::where('employee_id', $request->employee_id)
+        ->where(function ($query) use ($request) {
+            $query->whereBetween('leave_from', [$request->leave_from, $request->leave_to])
+                  ->orWhereBetween('leave_to', [$request->leave_from, $request->leave_to])
+                  ->orWhere(function ($query) use ($request) {
+                      $query->where('leave_from', '<=', $request->leave_from)
+                            ->where('leave_to', '>=', $request->leave_to);
+                  });
+        })
+        ->exists();
+
+    if ($overlap) {
+        return back()->withErrors(['leave_range' => 'You already have a leave that overlaps with the selected dates.'])->withInput();
+    }
+
+    $employee = Subu::find($request->employee_id);
+    $leaveType = $request->reason;
+    $totalDays = $request->total_days;
+
+    // Initialize
+    $plBalanceDeducted = 0;
+    $slDaysDeducted = 0;
+    $lopDaysAdded = 0;
+
+    // Handle permanent employee
+    if ($employee->employment_type === 'permanent') {
+        $leaveBalance = Leavebalance::where('employee_id', $employee->id)
+                        ->where('year', now()->year)
+                        ->first();
 
 
-    // Insert employee data
+        $remainingDays = $totalDays;
+
+        // CASE 1: LOP - try PL (optional: SL), then LOP
+        if ($leaveType === 'LOP') {
+            if ($leaveBalance->pl_balance > 0) {
+                $plToUse = min($remainingDays, floor($leaveBalance->pl_balance));
+                $leaveBalance->pl_balance -= $plToUse;
+                $plBalanceDeducted = $plToUse;
+                $remainingDays -= $plToUse;
+            }
+
+
+
+            if ($remainingDays > 0) {
+                $leaveBalance->lop_days += $remainingDays;
+                $lopDaysAdded = $remainingDays;
+            }
+        }
+
+        // CASE 2: PL
+        elseif ($leaveType === 'PL') {
+            if ($leaveBalance->pl_balance >= $totalDays) {
+                $leaveBalance->pl_balance -= $totalDays;
+                $plBalanceDeducted = $totalDays;
+            } else {
+                $plToUse = floor($leaveBalance->pl_balance);
+                $leaveBalance->pl_balance -= $plToUse;
+                $plBalanceDeducted = $plToUse;
+                $remaining = $totalDays - $plToUse;
+                $leaveBalance->lop_days += $remaining;
+                $lopDaysAdded = $remaining;
+            }
+        }
+
+        // CASE 3: SL
+        elseif ($leaveType === 'SL') {
+            if ($leaveBalance->sl_balance >= $totalDays) {
+                $leaveBalance->sl_balance -= $totalDays;
+                $slDaysDeducted = $totalDays;
+            } else {
+                $slToUse = $leaveBalance->sl_balance;
+                $leaveBalance->sl_balance = 0;
+                $slDaysDeducted = $slToUse;
+                $remaining = $totalDays - $slToUse;
+                $leaveBalance->lop_days += $remaining;
+                $lopDaysAdded = $remaining;
+            }
+        }
+
+        //$leaveBalance->save();
+    }
+
+    // Handle non-permanent employee
+    else {
+        $leaveBalance = Leavebalance::where('employee_id', $employee->id)
+        ->where('year', now()->year)
+        ->first();
+
+            if (!$leaveBalance) {
+            $leaveBalance = Leavebalance::create([
+            'employee_id' => $employee->id,
+            'year' => now()->year,
+            'annual_leave_entitlement' => 0,
+            'total_leave_balance' => 0,
+            'pl_balance' => 0,
+            'sl_balance' => 0,
+            'lop_days' => 0
+            ]);
+            }
+
+
+        if ($leaveType !== 'LOP') {
+            return back()->with('error', 'Non-permanent employees are only entitled to LOP.');
+        }
+
+        //$leaveBalance->lop_days += $totalDays;
+        $lopDaysAdded = $totalDays;
+        $leaveBalance->save();
+    }
+
+    // Handle file upload
+    $uploadPath = null;
+    if ($request->hasFile('upload')) {
+        $upload = $request->file('upload');
+        $uploadName = time() . '_' . $upload->getClientOriginalName();
+        $uploadPath = 'leaveupload/' . $uploadName;
+        $upload->move(public_path('leaveupload'), $uploadName);
+    }
+
+    // Store leave record
     Leave::create([
-        'employee_id' => $request->employee_id,
-        'name' => $request->name,
-        'designation' => $request->designation,
-        'department' => $request->department,
-        'leave_from' => $request->leave_from,
-        'leave_to' => $request->leave_to,
-        'total_days' => $request->total_days,
-        'reason' => $request->reason,
-        'remarks' => $request->remarks,
-        'status' => 'Pending',
-        // 'upload' => $request->upload,
-        'upload' => $uploadPath,
+        'employee_id'   => $request->employee_id,
+        'name'          => $request->name,
+        'designation'   => $request->designation,
+        'department'    => $request->department,
+        'leave_from'    => $request->leave_from,
+        'leave_to'      => $request->leave_to,
+        'total_days'    => $totalDays,
+        'reason'        => $leaveType,
+        'PL'            => $plBalanceDeducted,
+        'SL'            => $slDaysDeducted,
+        'LOP'           => $lopDaysAdded,
+        'remarks'       => $request->remarks,
+        'upload'        => $uploadPath,
     ]);
 
-    $notification = [
-        'message' => 'leave apply successfully',
+    return redirect()->route('rmleave.apply')->with([
+        'message' => 'Leave applied successfully!',
         'alert-type' => 'success'
-    ];
-
-    return redirect()->route('rmleave.apply')->with($notification);
-    return back()->with('success', 'Leave applied successfully');
+    ]);
 }
+
+
 public function EdiRmLeave($id)
 {
 $test = Leave::findOrFail($id);
@@ -414,9 +524,9 @@ public function DeleteRmLeave($id)
     return redirect()->route('rmleave.apply')->with($notification);
 } //End method
 
- // ================================================================================
+// ================================================================================
                     // Expense Claim Form
-    // ================================================================================
+// ================================================================================
     public function ListRmClaim()
     {
         $user = auth()->user();
@@ -551,43 +661,7 @@ public function LeaveApprovalByRm()
 public function approveLeaveByRm($id)
 {
     $leave = Leave::findOrFail($id);
-// dd($leave->toArray());
-    // Check if leave was previously rejected by RM
-    // if ($leave->rm_status == 'rmreject') {
-    //     $employeeId = $leave->employee_id;
-    //     $year = \Carbon\Carbon::parse($leave->leave_from)->year;
 
-    //     $leaveBalance = LeaveBalance::where('employee_id', $employeeId)
-    //         ->where('year', $year)
-    //         ->first();
-
-    //     if ($leaveBalance) {
-    //         // Deduct PL again
-    //         if ($leave->PL > 0) {
-    //             $leaveBalance->pl_balance -= $leave->PL;
-    //             if ($leaveBalance->pl_balance < 0) {
-    //                 $leaveBalance->pl_balance = 0;
-    //             }
-    //         }
-
-    //         // Deduct SL again
-    //         if ($leave->SL > 0) {
-    //             $leaveBalance->sl_balance -= $leave->SL;
-    //             if ($leaveBalance->sl_balance < 0) {
-    //                 $leaveBalance->sl_balance = 0;
-    //             }
-    //         }
-
-    //         // Add LOP again
-    //         if ($leave->LOP > 0) {
-    //             $leaveBalance->lop_days += $leave->LOP;
-    //         }
-
-    //         $leaveBalance->save();
-    //     }
-    // }
-
-    // Update RM approval status
     $leave->rm_status = 'rmapprove';
     $leave->save();
 
@@ -599,42 +673,7 @@ public function approveLeaveByRm($id)
 {
     $leave = Leave::findOrFail($id);
 
-    // Restore leave balances only if not already rejected
-    // if ($leave->rm_status !== 'rmreject') {
 
-    //     $employeeId = $leave->employee_id;
-    //     $year = \Carbon\Carbon::parse($leave->leave_from)->year;
-
-    //     $leaveBalance = LeaveBalance::where('employee_id', $employeeId)
-    //         ->where('year', $year)
-    //         ->first();
-
-    //     if ($leaveBalance) {
-    //         // Restore PL
-    //         if ($leave->PL > 0) {
-    //             $leaveBalance->pl_balance += $leave->PL;
-    //         }
-
-    //         // Restore SL
-    //         if ($leave->SL > 0) {
-    //             $leaveBalance->sl_balance += $leave->SL;
-    //         }
-
-    //         // Subtract LOP days if they were added
-    //         if ($leave->LOP > 0) {
-    //             $leaveBalance->lop_days -= $leave->LOP;
-
-    //             // Just in case lop_days becomes negative
-    //             if ($leaveBalance->lop_days < 0) {
-    //                 $leaveBalance->lop_days = 0;
-    //             }
-    //         }
-
-    //         $leaveBalance->save();
-    //     }
-    // }
-
-    // Update leave status to rejected
     $leave->rm_status = 'rmreject';
     $leave->save();
 
@@ -653,39 +692,7 @@ public function rejectLeaveSubmitbyRm(Request $request)
 
     $leave = Leave::findOrFail($request->leave_id);
 
-    // Only restore leave if not already rejected
-    // if ($leave->rm_status !== 'rmreject') {
 
-    //     $employeeId = $leave->employee_id;
-    //     $year = \Carbon\Carbon::parse($leave->leave_from)->year;
-
-    //     $leaveBalance = LeaveBalance::where('employee_id', $employeeId)
-    //         ->where('year', $year)
-    //         ->first();
-
-        // if ($leaveBalance) {
-        //     // Restore PL
-        //     if ($leave->PL > 0) {
-        //         $leaveBalance->pl_balance += $leave->PL;
-        //     }
-
-        //     // Restore SL
-        //     if ($leave->SL > 0) {
-        //         $leaveBalance->sl_balance += $leave->SL;
-        //     }
-
-        //     // Reverse LOP
-        //     if ($leave->LOP > 0) {
-        //         $leaveBalance->lop_days -= $leave->LOP;
-        //         if ($leaveBalance->lop_days < 0) {
-        //             $leaveBalance->lop_days = 0;
-        //         }
-        //     }
-
-        //     $leaveBalance->save();
-        // }
-
-        // Update leave status
         $leave->rm_status = 'rmreject';
         $leave->save();
 
@@ -706,44 +713,202 @@ public function rejectLeaveSubmitbyRm(Request $request)
 ////////////////////////////////////////////////////attendance status approval by reporting manager////////////////////////////////////////////////////
 
 
+// public function viewEmployeeAttendancesStatuses(Request $request)
+// {
+//     $month = $request->input('month');
+//     $currentYear = now()->year;
+
+//     $loggedInUserId = auth()->id();
+
+//     // Get the Subu record for the logged-in report manager (based on user_id)
+//     $reportManager = Subu::where('user_id', $loggedInUserId)
+//                          ->where('user_role', 'reportmanager')
+//                          ->first();
+
+//     if (!$reportManager) {
+//         return back()->with('error', 'Report Manager not found.');
+//     }
+
+//     // Now fetch employees assigned to this report manager
+//     $rmanagers = Subu::where('user_role', 'user')
+//                      ->where('assigned_to', $reportManager->id)
+//                      ->get();
+
+//     // Load filtered attendances for each employee
+//     foreach ($rmanagers as $manager) {
+//         $attendanceQuery = $manager->attendance();
+
+//         if ($month) {
+//             $attendanceQuery->whereMonth('date', $month)
+//                             ->whereYear('date', $currentYear);
+//         } else {
+//             $attendanceQuery->whereYear('date', $currentYear);
+//         }
+
+//         // Attach attendance records to the user model
+//         $manager->filteredAttendances = $attendanceQuery->orderBy('date')->get();
+//     }
+
+//     return view('report_manager.employee_management.attendance_status.employee_attendance_status', compact('rmanagers', 'month'));
+// }
+
+
+
 public function viewEmployeeAttendancesStatuses(Request $request)
-{
-    $month = $request->input('month');
-    $currentYear = now()->year;
+    {
+        $month       = (int)$request->input('month', now()->format('m'));
+        $currentYear = now()->year;
+        $userId      = auth()->id();
 
-    $loggedInUserId = auth()->id();
+        // 1) Find this reporting manager's Subu record
+        $reportManager = Subu::where('user_id', $userId)
+                             ->where('user_role','reportmanager')
+                             ->firstOrFail();
 
-    // Get the Subu record for the logged-in report manager (based on user_id)
-    $reportManager = Subu::where('user_id', $loggedInUserId)
-                         ->where('user_role', 'reportmanager')
-                         ->first();
+        // 2) Fetch employees assigned to that Subu ID
+        $employees = Subu::where('user_role','user')
+                         ->where('assigned_to', $reportManager->id)
+                         ->get();
 
-    if (!$reportManager) {
-        return back()->with('error', 'Report Manager not found.');
-    }
+        // 3) Build filteredAttendances on each
+        foreach ($employees as $emp) {
+            // real attendance rows keyed by date
+            $att = $emp->attendance()
+                       ->whereYear('date', $currentYear)
+                       ->whereMonth('date', $month)
+                       ->get()
+                       ->keyBy('date');
 
-    // Now fetch employees assigned to this report manager
-    $rmanagers = Subu::where('user_role', 'user')
-                     ->where('assigned_to', $reportManager->id)
-                     ->get();
+            // approved leaves in that month
+            $leaves = Leave::where('employee_id',$emp->id)
+                           ->where('m_status','mapprove')
+                           ->where('rm_status','rmapprove')
+                           ->whereYear('leave_from','<=',$currentYear)
+                           ->whereYear('leave_to','>=',$currentYear)
+                           ->whereMonth('leave_from','<=',$month)
+                           ->whereMonth('leave_to','>=',$month)
+                           ->get();
 
-    // Load filtered attendances for each employee
-    foreach ($rmanagers as $manager) {
-        $attendanceQuery = $manager->attendance();
+            $rows = collect();
+            $days = Carbon::now()->setMonth($month)->daysInMonth;
+            for ($d = 1; $d <= $days; $d++) {
+                $date = Carbon::create($currentYear,$month,$d)->format('Y-m-d');
+                $rec  = $att[$date] ?? null;
 
-        if ($month) {
-            $attendanceQuery->whereMonth('date', $month)
-                            ->whereYear('date', $currentYear);
-        } else {
-            $attendanceQuery->whereYear('date', $currentYear);
+                // if no attendance but on approved leave
+                if (!$rec && $leaves->first(fn($l) => $date >= $l->leave_from && $date <= $l->leave_to)) {
+                    $rec = (object)[
+                        'date'          => $date,
+                        'status'        => 'On Leave',
+                        'check_in_time' => null,
+                        'created_at'    => null,
+                        'rm_approval_status' => 'leave approved',
+
+                    ];
+                }
+
+                if ($rec) {
+                    $rows->push($rec);
+                }
+            }
+
+            $emp->filteredAttendances = $rows;
         }
 
-        // Attach attendance records to the user model
-        $manager->filteredAttendances = $attendanceQuery->orderBy('date')->get();
+        return view(
+            'report_manager.employee_management.attendance_status.employee_attendance_status',
+            compact('employees','month')
+        );
     }
 
-    return view('report_manager.employee_management.attendance_status.employee_attendance_status', compact('rmanagers', 'month'));
+
+
+
+
+
+
+
+public function downloadEmployeeAttendanceReports(Request $request)
+{
+    $month        = (int)$request->query('month', now()->month);
+    $year         = now()->year;
+
+    // 1) Find *your* Subu record for this RM:
+    $rmSubu = Subu::where('user_id', auth()->id())
+                  ->where('user_role','reportmanager')
+                  ->firstOrFail();
+
+    // 2) Fetch employees assigned to *that* Subu ID:
+    $employees = Subu::where('user_role','user')
+        ->where('assigned_to', $rmSubu->id)
+        ->get();
+
+    // 3) Build filteredAttendances exactly as before...
+    foreach ($employees as $emp) {
+        $attByDate = $emp->attendance()
+                         ->whereYear('date',$year)
+                         ->whereMonth('date',$month)
+                         ->get()
+                         ->keyBy('date');
+
+        $leaves = Leave::where('employee_id',$emp->id)
+                       ->where('m_status','mapprove')
+                       ->where('rm_status','rmapprove')
+                       ->whereYear('leave_from','<=',$year)
+                       ->whereYear('leave_to','>=',$year)
+                       ->whereMonth('leave_from','<=',$month)
+                       ->whereMonth('leave_to','>=',$month)
+                       ->get();
+
+        $rows = collect();
+        $days = now()->setMonth($month)->daysInMonth;
+        for ($d = 1; $d <= $days; $d++) {
+            $date = now()->setDate($year,$month,$d)->format('Y-m-d');
+            $rec  = $attByDate[$date] ?? null;
+
+            if (! $rec && $leaves->first(fn($l)=> $date >= $l->leave_from && $date <= $l->leave_to)) {
+                $rec = (object)[
+                    'date'=>$date,'status'=>'On Leave',
+                    'check_in_time'=>null,'created_at'=>null
+                ];
+            }
+            if ($rec) $rows->push($rec);
+        }
+
+        $emp->filteredAttendances = $rows;
+    }
+
+    // 4) Clear buffers
+    while (ob_get_level()) ob_end_clean();
+
+    // 5) Stream CSV
+    $fileName = "attendance_{$month}_{$year}.csv";
+    return response()->stream(function() use($employees) {
+        $out = fopen('php://output','w');
+        fputcsv($out,['Date','Employee ID','Name','Status','Check-in','System Time']);
+        foreach($employees as $e){
+            foreach($e->filteredAttendances as $a){
+                fputcsv($out,[
+                    Carbon::parse($a->date)->format('d/M/Y'),
+                    $e->employee_id,
+                    $e->name,
+                    $a->status?:'Present',
+                    $a->check_in_time
+                      ? Carbon::parse($a->check_in_time)->format('h:i A')
+                      : '---',
+                    $a->created_at
+                      ? Carbon::parse($a->created_at)->format('H:i')
+                      : '---',
+                ]);
+            }
+        }
+        fclose($out);
+    }, 200, [
+        'Content-Type'=>'text/csv',
+        'Content-Disposition'=>"attachment; filename={$fileName}",
+    ]);
 }
+
 
 
 
@@ -811,13 +976,50 @@ public function trackClaimStatusofRm()
      // Check leave balance
 // ======================================================================================
 
-public function CheckLeaveofRm()
-    {
-        $user = auth()->user(); // Assuming HR Head is logged in
-        return view('report_manager.leave_management.leavebalance.check_leave_balance', [
-                    'reportManagerName' => $user->name,
-                ]);
 
+
+
+    public function CheckLeaveofRm()
+    {
+        $user = Auth::user();
+
+        $employee = Subu::with(['leaveBalances', 'leave'])->where('user_id', $user->id)->first();
+    // dd($employee->toArray());
+
+
+        if (!$employee) {
+            return redirect()->back()->with('error', 'Employee not found!');
+        }
+
+        // Get current year
+        $currentYear = date('Y');
+
+        // Fetch the leave balance record for the current year
+        $leaveBalance = $employee->leaveBalances->where('year', $currentYear)->first();
+        $totalleaveTillYet = $employee->leaveBalances->where('year', $currentYear)->sum('total_leave_balance');
+
+        $totalleaveTakenPL = $employee->leave ?$employee->leave
+        ->where('employee_id', $employee->id)
+        ->sum('PL') : 0;
+
+        $totalleaveTakenSL = $employee->leave ? $employee->leave
+        ->where('employee_id', $employee->id)
+        ->sum('SL') : 0;
+
+
+        $totalleaveTakenLOP = $employee->leave ? $employee->leave->where('employee_id', $employee->id)->sum('LOP') : 0;
+        // Calculate total leave days from payroll records for the current year
+        $totalLopDays = $employee->payrolls->where('year', $currentYear)->sum('lop_days');
+
+        return view('report_manager.leave_management.leavebalance.check_leave_balance', compact(
+            'employee',
+            'leaveBalance',
+            'totalLopDays',
+            'totalleaveTillYet',
+            'totalleaveTakenPL',
+            'totalleaveTakenSL',
+            'totalleaveTakenLOP'
+        ));
     }
 
 
@@ -851,6 +1053,69 @@ public function updatePermanentStatus(Request $request, $id)
 
     return back()->with('success', 'Request has been ' . ucfirst($action) . '.');
 }
+
+
+
+////////////////////////////////////payslip////////////////////////////////////
+
+public function ListRmPayslip()
+{
+    // Get the years from the current year back to 2009
+    $years = range(date('Y'), 2009);
+
+    // Define the months array
+    $months = [
+        '01' => 'January', '02' => 'February', '03' => 'March', '04' => 'April',
+        '05' => 'May', '06' => 'June', '07' => 'July', '08' => 'August',
+        '09' => 'September', '10' => 'October', '11' => 'November', '12' => 'December'
+    ];
+
+    // Get the authenticated user
+    $user = auth()->user();
+
+    // Find the employee details for the logged-in user
+    $employee = Subu::where('user_id', $user->id)->first();
+
+    // Ensure $employee is found before passing it
+    if (!$employee) {
+        return redirect()->back()->with('error', 'Employee record not found.');
+    }
+
+    return view('report_manager.payroll.rm_payslips_list', compact('years', 'months', 'employee'));
+
+}
+
+
+public function RmPayslipView(Request $request)
+{
+    $user = auth()->user();
+// dd($request->toArray());
+    // Retrieve the logged-in employee
+    $employee = Subu::where('user_id', $user->id)->first();
+    // dd($employee->toArray());
+
+    if (!$employee) {
+        return response()->json(['error' => 'Report Manager not found'], 404);
+    }
+
+    // Get year and month from request, default to current year and month
+    $year = $request->input('year', now()->year);
+    $month = $request->input('month', now()->format('m'));
+
+    // Find the payslip based on employee_id and created_at year-month
+    $payslip = Salary::where('employee_id', $employee->id)
+        ->whereYear('created_at', $year)
+        ->whereMonth('created_at', $month)
+        ->first();
+
+    if (!$payslip) {
+        return response()->json(['error' => 'Payslip not found for the selected month'], 404);
+    }
+
+    return view('report_manager.payroll.view_rm_payslip', compact('payslip'));
+}
+
+
 
 
 }

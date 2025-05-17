@@ -266,6 +266,23 @@ class EmployeeController extends Controller
         return redirect()->back()->with($notification);
     }
 
+
+
+// ✅ Step 2: Check if date falls within an approved leave
+    $onLeave = Leave::where('employee_id', $request->employee_id)
+        ->whereDate('leave_from', '<=', $request->date)
+        ->whereDate('leave_to', '>=', $request->date)
+        ->where('m_status', 'mapprove')
+        ->exists();
+
+    if ($onLeave) {
+        return redirect()->back()->with([
+            'message' => 'Cannot mark attendance: This date falls within an approved leave period.',
+            'alert-type' => 'error'
+        ]);
+    }
+
+
     // Insert employee data
     Employeeattendance::create([
         'employee_id' => $request->employee_id,
@@ -362,6 +379,24 @@ class EmployeeController extends Controller
             'remarks' => 'nullable',
             'upload' => 'nullable|file',
         ]);
+
+
+
+        // ✅ Step 2: Overlapping Leave Check
+    $overlap = Leave::where('employee_id', $request->employee_id)
+        ->where(function ($query) use ($request) {
+            $query->whereBetween('leave_from', [$request->leave_from, $request->leave_to])
+                  ->orWhereBetween('leave_to', [$request->leave_from, $request->leave_to])
+                  ->orWhere(function ($query) use ($request) {
+                      $query->where('leave_from', '<=', $request->leave_from)
+                            ->where('leave_to', '>=', $request->leave_to);
+                  });
+        })
+        ->exists();
+
+    if ($overlap) {
+        return back()->withErrors(['leave_range' => 'You already have a leave that overlaps with the selected dates.'])->withInput();
+    }
 
         $employee = Subu::find($request->employee_id);
         $leaveType = $request->reason;
@@ -635,7 +670,7 @@ public function trackClaimStatus()
 
 
 
-
+////////////// view Pay Slip //////////////
 
     public function ListPaylip()
 {
@@ -662,6 +697,9 @@ public function trackClaimStatus()
 
     return view('employee.PayrollandCompensation.employee_payslips_list', compact('years', 'months', 'employee'));
 }
+
+
+
     public function DownPayslip($id)
 {
     // Fetch the payslip details using the provided ID
@@ -674,12 +712,17 @@ public function trackClaimStatus()
     return view('employee.PayrollandCompensation.particularemployeepayslipdownload', compact('abc', 'def'));
 }
 
+
+
+
+
 public function EmpPayslipView(Request $request)
 {
     $user = auth()->user();
-
+// dd($request->toArray());
     // Retrieve the logged-in employee
     $employee = Subu::where('user_id', $user->id)->first();
+    // dd($employee->toArray());
 
     if (!$employee) {
         return response()->json(['error' => 'Employee not found'], 404);

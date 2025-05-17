@@ -13,7 +13,6 @@
         <ul class="nav">
 
             <li class="nav-item nav-category">employee management</li>
-
             <a href="{{ route('hrhead.dashboard') }}" class="nav-link">
                 <i class="link-icon" data-feather="box"></i>
                 <span class="link-title">Dashboard</span>
@@ -22,14 +21,14 @@
                 <i class="link-icon" data-feather="box"></i>
                 <span class="link-title">Employee Directory</span>
             </a>
-            </li>
+
 
             <li class="nav-item nav-category">HR Head attendance</li>
             <a href="{{ route('hrhead.attendance') }}" class="nav-link">
                 <i class="link-icon" data-feather="box"></i>
                 <span class="link-title">Add Attendace</span>
             </a>
-            </li>
+
             <li class="nav-item nav-category">Leave</li>
             <a href="{{ route('hrheadleave.balance') }}" class="nav-link">
                 <i class="link-icon" data-feather="box"></i>
@@ -43,7 +42,7 @@
                 <i class="link-icon" data-feather="box"></i>
                 <span class="link-title">Leave Status</span>
             </a>
-            </li>
+
             <li class="nav-item nav-category">claim</li>
 
             <a href="{{ route('claim.formhrhead') }}" class="nav-link">
@@ -54,7 +53,7 @@
                 <i class="link-icon" data-feather="box"></i>
                 <span class="link-title">Claim Status</span>
             </a>
-            </li>
+
 
 
             <li class="nav-item nav-category">Leave Approval</li>
@@ -63,14 +62,13 @@
                 <i class="link-icon" data-feather="box"></i>
                 <span class="link-title">Hr Manager Leave Approval</span>
             </a>
-            </li>
+
             <li class="nav-item nav-category">Claim Approval</li>
-            {{-- <a href="#" class="nav-link"> --}}
             <a href="{{ route('hrmclaimapproval.status') }}" class="nav-link">
                 <i class="link-icon" data-feather="box"></i>
                 <span class="link-title">Hr Manager Claim Approval</span>
             </a>
-            </li>
+
 
             <li class="nav-item nav-category">All Employee Status</li>
 
@@ -168,10 +166,31 @@
             </li>
 
             <li class="nav-item nav-category"> Request </li>
-            <a href="{{ route('update.request.hr') }}" class="nav-link">
-                <i class="link-icon" data-feather="box"></i>
-                <span class="link-title">Apply Request</span>
-            </a>
-            </li>
+                    <a href="{{ route('update.request.hr') }}" class="nav-link">
+                        <i class="link-icon" data-feather="box"></i>
+                        <span class="link-title">Request Corner</span>
+                    </a>
+
+
+            <li class="nav-item nav-category"> Muster Roll </li>
+                    <a href="{{ route('hr.hrm.payroll') }}" class="nav-link">
+                        <i class="link-icon" data-feather="box"></i>
+                        <span class="link-title">payroll</span>
+                    </a>
+                    <a href="{{ route('hrmsalaries.lists') }}" class="nav-link">
+                        <i class="link-icon" data-feather="box"></i>
+                        <span class="link-title">Salary Structure</span>
+                    </a>
+
+            <li class="nav-item nav-category"> Payroll and Compensation </li>
+                <a href="{{ route('hr.payslip') }}" class="nav-link">
+                    <i class="link-icon" data-feather="box"></i>
+                    <span class="link-title">View Payslip</span>
+                </a>
+
+
+        </ul>
+    </div>
+</nav>
 
 

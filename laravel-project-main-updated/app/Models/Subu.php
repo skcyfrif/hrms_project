@@ -107,10 +107,17 @@ public function payrolls()
         return $this->hasMany(Payrolls::class, 'employee_id', 'id');
     }
 
+// public function leaves()
+//     {
+//         return $this->hasMany(Leave::class);
+//     }
+
 public function leaves()
-    {
-        return $this->hasMany(Leave::class);
-    }
+{
+    return $this->hasMany(Leave::class, 'employee_id', 'employee_id'); // adjust foreign key if needed
+}
+
+
     public function leaveBalances()
     {
         return $this->hasMany(Leavebalance::class, 'employee_id', 'id');
@@ -127,12 +134,12 @@ public function leaves()
     public function leave()
     {
         // Assuming there's a field `employee_id` in both `Subu` and `EmployeeAttendance` models
-        return $this->hasOne(Leave::class, 'employee_id');
+        return $this->hasMany(Leave::class, 'employee_id');
     }
 
     public function claim()
 {
-    return $this->hasOne(Expenseclaim::class, 'employee_id', 'id');
+    return $this->hasMany(Expenseclaim::class, 'employee_id', 'id');
 }
 
 
