@@ -53,11 +53,12 @@
                                         <th>Date</th>
                                         <th>Employee ID</th>
                                         <th>Name</th>
+                                        <th>department</th>
                                         <th>Attendance Status</th>
                                         <th>Check-in Time</th>
                                         <th>System Time</th>
                                         {{-- <th>Manager Approval Status</th> --}}
-                                        <th>RM Approval Status</th>
+                                        {{-- <th>RM Approval Status</th> --}}
                                         {{-- <th>Status</th> --}}
                                     </tr>
                                 </thead>
@@ -75,6 +76,7 @@
                                                 <td>{{ \Carbon\Carbon::parse($attendance->date)->format('d/M/Y') }}</td>
                                                 <td>{{ $head->employee_id }}</td>
                                                 <td>{{ $head->name }}</td>
+                                                <td>{{ $head->department }}</td>
                                                 <td>
                                                     @if ($attendance->status === 'On Leave')
                                                         <span class="badge bg-info text-dark">On Leave</span>
@@ -100,7 +102,7 @@
                                                 </td>
 
                                                 {{-- <td>{{ $attendance->manager_approval_status ?? '---' }}</td> --}}
-                                                <td>{{ $attendance->rm_approval_status ?? '---' }}</td>
+                                                {{-- <td>{{ $attendance->rm_approval_status ?? '---' }}</td> --}}
 
 
                                                 {{-- <td>

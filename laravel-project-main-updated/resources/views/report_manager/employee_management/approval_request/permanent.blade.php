@@ -18,7 +18,8 @@
                                         <th>Sl</th>
                                         <th>employee id </th>
                                         <th>name</th>
-                                        <th>m Status</th>
+                                        <th>designation</th>
+                                        {{-- <th>m Status</th> --}}
                                         <th>Rm Status</th>
                                         <th>Action</th>
                                     </tr>
@@ -31,7 +32,8 @@
                                             <td>{{ $index + 1 }}</td>
                                             <td>{{ $req->employee->employee_id ?? 'N/A' }}</td>
                                             <td>{{ $req->employee->name ?? 'N/A' }}</td>
-                                            <td>
+                                            <td>{{ $req->employee->designation ?? 'N/A' }}</td>
+                                            {{-- <td>
                                                 @if ($req->mstatus === 'mapprove')
                                                     <span class="badge bg-success">Approved</span>
                                                 @elseif($req->mstatus === 'mreject')
@@ -39,7 +41,7 @@
                                                 @else
                                                     <span class="badge bg-warning text-dark">Pending</span>
                                                 @endif
-                                            </td>
+                                            </td> --}}
                                             <td>
                                                 @if ($req->rmstatus === 'rmapprove')
                                                     <span class="badge bg-success">Approved</span>
@@ -49,7 +51,7 @@
                                                     <span class="badge bg-warning text-dark">Pending</span>
                                                 @endif
                                             </td>
-                                            <td>
+                                            {{-- <td>
                                                 <form action="{{ route('rm.rmapprove.permanent', $req->id) }}" method="POST" style="display:inline-block;">
                                                     @csrf
 
@@ -90,7 +92,67 @@
                                                         </form>
                                                     </div>
                                                 </div>
+                                            </td> --}}
+
+
+
+
+                                            <td>
+                                                <form action="{{ route('rm.rmapprove.permanent', $req->id) }}"
+                                                    method="POST" style="display:inline-block;">
+                                                    @csrf
+
+                                                    @if ($req->rmstatus === 'rmpending')
+                                                        <button type="submit" name="action" value="rmapprove"
+                                                            class="btn btn-success btn-sm">Approve</button>
+
+                                                        <!-- Trigger modal -->
+                                                        <button type="button" class="btn btn-danger btn-sm"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#rejectModal{{ $req->id }}">
+                                                            Reject
+                                                        </button>
+                                                    @elseif ($req->rmstatus === 'rmapprove')
+                                                        <span class="text-success fw-bold">Approved</span>
+                                                    @elseif ($req->rmstatus === 'rmreject')
+                                                        <span class="text-danger fw-bold">Rejected</span>
+                                                    @endif
+                                                </form>
+
+                                                <!-- Modal only if pending -->
+                                                @if ($req->rmstatus === 'rmpending')
+                                                    <div class="modal fade" id="rejectModal{{ $req->id }}"
+                                                        tabindex="-1" aria-labelledby="rejectModalLabel{{ $req->id }}"
+                                                        aria-hidden="true">
+                                                        <div class="modal-dialog">
+                                                            <form method="POST"
+                                                                action="{{ route('rm.rmapprove.permanent', $req->id) }}">
+                                                                @csrf
+                                                                <input type="hidden" name="action" value="mreject">
+                                                                <div class="modal-content">
+                                                                    <div class="modal-header">
+                                                                        <h5 class="modal-title"
+                                                                            id="rejectModalLabel{{ $req->id }}">Reason
+                                                                            for Rejection</h5>
+                                                                        <button type="button" class="btn-close"
+                                                                            data-bs-dismiss="modal"
+                                                                            aria-label="Close"></button>
+                                                                    </div>
+                                                                    <div class="modal-body">
+                                                                        <textarea name="rejection_reason" class="form-control" rows="4" required placeholder="Enter reason..."></textarea>
+                                                                    </div>
+                                                                    <div class="modal-footer">
+                                                                        <button type="submit" class="btn btn-danger">Submit
+                                                                            Rejection</button>
+                                                                    </div>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                @endif
                                             </td>
+
+
 
                                         </tr>
                                     @endforeach

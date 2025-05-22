@@ -8,7 +8,6 @@ use App\Http\Controllers\hr\HrController;
 use App\Http\Controllers\hrManager\HrManagerController;
 use App\Http\Controllers\ReportingManager\RmController;
 use App\Http\Controllers\EmployeeController;
-use App\Http\Controllers\employee\LoginController;
 // use App\Http\Controllers\subrat\SubContrller;
 use App\Http\Controllers\employee\AeController;
 use App\Http\Controllers\Salary\SalaryController;
@@ -19,6 +18,12 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
+});
+
+Route::post('/apply', [HrManagerController::class, 'StoreApply']);
+
+Route::get('/apply-job', function () {
+    return view('job-apply');
 });
 
 Route::get('/dashboard', function () {
@@ -680,31 +685,9 @@ Route::middleware(['auth' , 'role:admin'])->group(function(){
 
 }); //End Group admin middleware
 
-            // ***Home Folder***
-Route::controller(HomeController::class)->group(function () {
-    Route::get('homefolder/overview', 'OverView')->name('overview');
-    Route::get('homefolder/announcements', 'AnnounceMents')->name('announcements');
-    Route::get('homefolder/quicklinks', 'QuickLinks')->name('Quick Links');
-    Route::get('homefolder/dashboard', 'MyDashboard')->name('mydashboard');
-});
 
 
 
-
-// Route::get('/employee/sub_list', [SubContrller::class, 'SubList']);
-
-            // ***Employee Directory***
-
-// Route::controller(SubContrller::class)->group(function() {
-//     Route::get('/employee/subrat/list', 'SubList')->name('subrat.list');
-//     Route::get('/add/subrat', 'AddSub')->name('add.subu');
-//     Route::post('/store/subrat', 'StoreSub')->name('store.subu');
-//     Route::get('/edit/subrat/{id}', 'EditSub')->name('edit.subu');
-//     Route::post('/update-step', 'UpdateStep')->name('update.step');
-//     Route::get('/delete/subrat/{id}', 'DeleteSub')->name('delete.subu');
-//     Route::get('subrat/view/{id}', 'SubView')->name('view.subu');
-//     Route::get('subrat/offer/{id}', 'viewOfferLetter')->name('offer.subu');
-// });
 
 Route::controller(SalaryController::class)->group(function() {
     Route::get('/salary/list', 'SalaryList')->name('salary.list');
@@ -717,39 +700,7 @@ Route::controller(SalaryController::class)->group(function() {
 
 
 });
-// Pay Slip
-// Route::controller(SalaryController::class)->group(function() {
-//     Route::get('/payslipss/list', 'PayslipList')->name('mypayslip.list');
-//     Route::get('/add/payslipss', 'AddPayslip')->name('add.payslip');
-//     Route::post('/store/payslipss', 'StorePayslip')->name('store.payslip');
-//     Route::get('/edit/payslipss/{id}', 'EditPayslip')->name('edit.payslip');
-//     Route::put('/update/payslipss/{id}', 'UpdatePayslip')->name('update.payslip');
-//     Route::get('/delete/payslipss/{id}', 'DeletePayslip')->name('delete.payslip');
-//     Route::get('/download/payslipss/{id}', 'DownloadPayslip')->name('download.payslip');
 
-// });
-
-
-// Employee Login
-Route::controller(LoginController::class)->group(function() {
-    Route::get('empl/login', 'ShowLoginForm')->name('login.list');
-    Route::get('logininfo', 'ShowLoginEmp')->name('emp.login');
-    Route::get('empl/logout', 'LogOutEmp')->name('emp.logout');
-
-
-
-});
-
-
-// HR
-// Route::middleware(['auth' , 'role:user'])->group(function(){
-//     Route::get('/hr/dashboard', [HrController::class, 'HrheadDashboard'])->name('hr.dashboard');
-//     Route::get('/hr/dashboard', [HrController::class, 'HrheadDashboard'])->name('hr.list');
-//     Route::get('/hr/dashboard', [HrController::class, 'HrheadDashboard'])->name('add.hr');
-//     Route::get('/hr/dashboard', [HrController::class, 'HrheadDashboard'])->name('store.hr');
-//     Route::get('/hr/dashboard', [HrController::class, 'HrheadDashboard'])->name('edit.hr');
-//     Route::get('/hr/dashboard', [HrController::class, 'HrheadDashboard'])->name('update.hr');
-//     Route::get('/hr/dashboard', [HrController::class, 'HrheadDashboard'])->name('delete.hr');
 
 Route::controller(HrController::class)->group(function() {
     Route::get('hr/list', 'HrList')->name('hr.list');

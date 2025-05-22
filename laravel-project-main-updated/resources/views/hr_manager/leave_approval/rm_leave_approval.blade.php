@@ -53,33 +53,7 @@
                                                 @endif
                                             </td>
 
-                                            {{-- <td>
-                                            @if ($leave->m_status == 'mapprove')
-                                                <!-- Show Reject button when leave is approved -->
-                                                <button class="btn btn-inverse-danger rejectBtn"
-                                                        data-id="{{ $leave->id }}"
-                                                        data-employee="{{ $leave->employee_id }}">
-                                                    Reject
-                                                </button>
-                                            @elseif($leave->m_status == 'mreject')
-                                                <!-- Show Approve button when leave is rejected -->
-                                                <a href="{{ route('mapprove.leave', $leave->id) }}"
-                                                   class="btn btn-inverse-success">
-                                                    Approve
-                                                </a>
-                                            @elseif($leave->m_status == 'mpending')
-                                                <!-- Show both Approve & Reject buttons when leave is pending -->
-                                                <a href="{{ route('mapprove.leave', $leave->id) }}"
-                                                   class="btn btn-inverse-success">
-                                                    Approve
-                                                </a>
-                                                <button class="btn btn-inverse-danger rejectBtn"
-                                                        data-id="{{ $leave->id }}"
-                                                        data-employee="{{ $leave->employee_id }}">
-                                                    Reject
-                                                </button>
-                                            @endif
-                                        </td> --}}
+
 
                                             <td>
                                                 @if ($leave->m_status == 'mpending')
@@ -101,6 +75,11 @@
                                                     <span class="badge bg-danger fs-6 px-3 py-2">Rejected</span>
                                                 @endif
                                             </td>
+
+
+
+
+
 
                                         </tr>
                                     @endforeach

@@ -54,8 +54,8 @@
                                         <th>Attendance Status</th>
                                         <th>Check-in Time</th>
                                         <th>System Time</th>
-                                        <th>Approval Status</th>
-                                        <th>Status</th>
+                                        {{-- <th>Approval Status</th> --}}
+                                        {{-- <th>Status</th> --}}
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -96,10 +96,10 @@
                                                     @endif
                                                 </td>
 
-                                                <td>{{ $attendance->manager_approval_status }}</td>
+                                                {{-- <td>{{ $attendance->manager_approval_status }}</td> --}}
 
 
-                                                <td>
+                                                {{-- <td>
                                                     @if ($attendance->status === 'On Leave')
                                                         <span class="text-muted">Leave Approved</span>
                                                     @else
@@ -108,7 +108,7 @@
                                                         <a href="{{ route('attendance.absent', $attendance->id) }}"
                                                             class="btn btn-danger">Absent</a>
                                                     @endif
-                                                </td>
+                                                </td> --}}
 
 
 

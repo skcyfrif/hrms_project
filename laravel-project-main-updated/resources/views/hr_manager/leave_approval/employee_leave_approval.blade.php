@@ -64,55 +64,9 @@
                                                 @endif
                                             </td>
 
-                                            {{-- <td>
-                                                @if ($leave->m_status == 'mapprove')
-                                                    <!-- Show Reject button when leave is approved -->
-                                                    <button class="btn btn-inverse-danger rejectBtn"
-                                                        data-id="{{ $leave->id }}"
-                                                        data-employee="{{ $leave->employee_id }}">
-                                                        Reject
-                                                    </button>
-                                                @elseif($leave->m_status == 'mreject')
-                                                    <!-- Show Approve button when leave is rejected -->
-                                                    <a href="{{ route('mapprove.leave', $leave->id) }}"
-                                                        class="btn btn-inverse-success">
-                                                        Approve
-                                                    </a>
-                                                @elseif($leave->m_status == 'mpending')
-                                                    <!-- Show both Approve & Reject buttons when leave is pending -->
-                                                    <a href="{{ route('mapprove.leave', $leave->id) }}"
-                                                        class="btn btn-inverse-success">
-                                                        Approve
-                                                    </a>
-                                                    <button class="btn btn-inverse-danger rejectBtn"
-                                                        data-id="{{ $leave->id }}"
-                                                        data-employee="{{ $leave->employee_id }}">
-                                                        Reject
-                                                    </button>
-                                                @endif
-                                            </td> --}}
-
 
 
                                             {{-- <td>
-                                                @if ($leave->m_status == 'mpending')
-                                                    <!-- Show both Approve and Reject buttons -->
-                                                    <a href="{{ route('mapprove.leave', $leave->id) }}"
-                                                        class="btn btn-inverse-success">
-                                                        Approve
-                                                    </a>
-                                                    <a href="{{ route('mreject.leave', $leave->id) }}"
-                                                        class="btn btn-inverse-danger">
-                                                        Reject
-                                                    </a>
-                                                @elseif ($leave->m_status == 'mapprove')
-                                                    <span class="badge badge-success">Approved</span>
-                                                @elseif ($leave->m_status == 'mreject')
-                                                    <span class="badge badge-danger">Rejected</span>
-                                                @endif
-                                            </td> --}}
-
-                                            <td>
                                                 @if ($leave->m_status == 'mpending')
                                                     <!-- Show both Approve & Reject buttons when leave is pending -->
                                                     <a href="{{ route('mapprove.leave', $leave->id) }}"
@@ -131,7 +85,33 @@
                                                     <!-- Rejected: Show status only -->
                                                     <span class="badge bg-danger fs-6 px-3 py-2">Rejected</span>
                                                 @endif
+                                            </td> --}}
+
+                                            <td>
+                                                @if ($leave->rm_status === 'rmapprove' || $leave->rm_status === 'rmreject')
+                                                    @if ($leave->m_status == 'mpending')
+                                                        <!-- Show Approve and Reject buttons when HR approval is pending -->
+                                                        <a href="{{ route('mapprove.leave', $leave->id) }}"
+                                                            class="btn btn-inverse-success">
+                                                            Approve
+                                                        </a>
+                                                        <button class="btn btn-inverse-danger rejectBtn"
+                                                            data-id="{{ $leave->id }}"
+                                                            data-employee="{{ $leave->employee_id }}">
+                                                            Reject
+                                                        </button>
+                                                    @elseif ($leave->m_status == 'mapprove')
+                                                        <!-- Approved: Show status only -->
+                                                        <span class="badge bg-success fs-6 px-3 py-2">Approved</span>
+                                                    @elseif ($leave->m_status == 'mreject')
+                                                        <!-- Rejected: Show status only -->
+                                                        <span class="badge bg-danger fs-6 px-3 py-2">Rejected</span>
+                                                    @endif
+                                                @else
+                                                    <span class="text-muted">Waiting for RM</span>
+                                                @endif
                                             </td>
+
 
 
 

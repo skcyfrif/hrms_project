@@ -981,7 +981,8 @@ public function UpdateClaim(Request $request, $id)
     }
 
 
-    // make permanent
+
+//////////////////////////// make permanent ////////////////////////////
 
     public function MakePermanent()
 {
@@ -1004,22 +1005,68 @@ public function submit(Request $request)
             ]);
             break;
 
-        case 'make-permanent':
+
+
+
+
+        // case 'make-permanent':
+        //     $request->validate([
+        //         'check_in_status' => 'required|in:on', // checkbox returns "on" if checked
+        //     ]);
+
+        //     // $employee = Auth::guard('employee')->user(); // assuming employee is logged in
+
+        //     Makepermanent::create([
+        //         'employee_id' => $employee->id,
+        //         'user_id' => $user->id,
+        //         'request_type' => $type,
+        //         'check_in_status' => $request->has('check_in_status'), // will be true/false
+        //     ]);
+
+        //     return back()->with('success', 'Make Permanent request submitted successfully!');
+        //     break;
+
+
+
+
+
+
+case 'make-permanent':
             $request->validate([
-                'check_in_status' => 'required|in:on', // checkbox returns "on" if checked
+                'check_in_status' => 'required|in:on',
             ]);
 
-            // $employee = Auth::guard('employee')->user(); // assuming employee is logged in
+            // Check if already approved make-permanent exists
+            $alreadyApproved = Makepermanent::where('user_id', $user->id)
+                ->where('request_type', 'make-permanent')
+                ->where('mstatus', 'mapprove')
+                ->exists();
+
+            if ($alreadyApproved) {
+                return back()->with('success', 'You have already applied and it has been approved. Please check your status.');
+            }
+
+            // Optional: prevent multiple pending requests too
+            $alreadyPending = Makepermanent::where('user_id', $user->id)
+                ->where('request_type', 'make-permanent')
+                ->where('mstatus', '!=', 'mapprove')
+                ->exists();
+
+            if ($alreadyPending) {
+                return back()->with('success', 'You have already submitted a request. Please wait for approval.');
+            }
 
             Makepermanent::create([
                 'employee_id' => $employee->id,
                 'user_id' => $user->id,
                 'request_type' => $type,
-                'check_in_status' => $request->has('check_in_status'), // will be true/false
+                'check_in_status' => $request->has('check_in_status'),
             ]);
 
             return back()->with('success', 'Make Permanent request submitted successfully!');
             break;
+
+
 
         case 'account-details-update':
             $request->validate([

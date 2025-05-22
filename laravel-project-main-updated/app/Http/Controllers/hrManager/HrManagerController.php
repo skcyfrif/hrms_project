@@ -1056,6 +1056,11 @@ public function viewEmployeeAttendances(Request $request)
 
         // Assign sorted collection back to employee
         $employee->filteredAttendances = $records->sortBy('date')->values();
+
+
+
+
+
     }
 
     return view('hr_manager.hrm.attendance_status_of_all_employees.employee_attendance_status', compact('hrmanagers', 'month'));
