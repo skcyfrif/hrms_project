@@ -11,6 +11,8 @@ use App\Models\Mypayslip;
 use App\Models\Expenseclaim;
 use App\Models\LeaveRejection;
 use App\Models\Makepermanent;
+use App\Models\ProfileUpdateRequest;
+use App\Models\AccountUpdateRequest;
 
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -1114,6 +1116,132 @@ public function RmPayslipView(Request $request)
 
     return view('report_manager.payroll.view_rm_payslip', compact('payslip'));
 }
+
+
+
+
+
+/////////////////////////////////////update request/////////////////////////////////////
+
+public function UpdateRequestOfRm()
+ {
+     $employee = Auth::user()->subu()->first();
+
+     return view('report_manager.request.update_request', compact('employee'));
+ }
+
+
+ public function submitByRm(Request $request)
+ {
+     $type = $request->input('request_type');
+     $user = auth()->user();
+     $employee = Subu::where('user_id', $user->id)->first();
+     switch ($type) {
+         case 'salary-increment':
+             $request->validate([
+                 'current_salary' => 'required|numeric',
+                 'expected_increment' => 'required|numeric',
+             ]);
+             break;
+
+         case 'account-details-update':
+            $request->validate([
+                'bank_name' => 'required|string',
+                'branch_name' => 'required|string',
+                'account_number' => 'required|string',
+                'ifsc_code' => 'required|string',
+            ]);
+
+           AccountUpdateRequest::create([
+                'employee_id' => $employee->id,
+                'bank_name' => $request->input('bank_name'),
+                'branch_name' => $request->input('branch_name'),
+                'account_number' => $request->input('account_number'),
+                'ifsc_code' => $request->input('ifsc_code'),
+                'm_status' => 'mpending',
+            ]);
+
+            return back()->with('success', 'Account update request sent for hr manager approval');
+
+        case 'update-profile':
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|max:255',
+                'phone_number' => 'required|string|max:20',
+                'current_address_line1' => 'nullable|string',
+                'current_address_line2' => 'nullable|string',
+                'current_city' => 'nullable|string',
+                'current_state' => 'nullable|string',
+                'current_district' => 'nullable|string',
+                'current_pin' => 'nullable|string|max:10',
+            ]);
+
+            ProfileUpdateRequest::create([
+                'employee_id' => $employee->id,
+                'name' => $request->name,
+                'email' => $request->email,
+                'phone_number' => $request->phone_number,
+                'current_address_line1' => $request->current_address_line1,
+                'current_address_line2' => $request->current_address_line2,
+                'current_city' => $request->current_city,
+                'current_state' => $request->current_state,
+                'current_district' => $request->current_district,
+                'current_pin' => $request->current_pin,
+                'm_status' => 'mpending',
+            ]);
+
+            return back()->with('success', 'Profile update request sent for hr manager approval.');
+
+         case 'any-issue':
+             $request->validate([
+                 'issue_description' => 'required|string',
+             ]);
+             break;
+     }
+
+     // You can store the other requests similarly...
+     return back()->with('success', 'Form submitted successfully!');
+ }
+
+
+
+ public function viewMyProfileStatus()
+{
+    $employee = Auth::user()->subu()->first();
+
+
+    if (!$employee) {
+        return redirect()->back()->with('error', 'No employee record found.');
+    }
+
+    // Fetch all profile update requests for this employee
+    $requests = ProfileUpdateRequest::where('employee_id', $employee->id)
+                                    ->orderBy('created_at', 'desc')
+                                    ->get();
+
+    return view('report_manager.request_status.profile_update', compact('requests'));
+}
+
+
+
+public function viewMyaccountUpdates()
+{
+    $employee = Auth::user()->subu()->first();
+
+
+    if (!$employee) {
+        return redirect()->back()->with('error', 'No employee record found.');
+    }
+
+    // Fetch all profile update requests for this employee
+    $requests = AccountUpdateRequest::where('employee_id', $employee->id)
+                                    ->orderBy('created_at', 'desc')
+                                    ->get();
+
+    return view('report_manager.request_status.account_update', compact('requests'));
+}
+
+
 
 
 

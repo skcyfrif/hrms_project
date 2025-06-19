@@ -38,6 +38,7 @@
                             <li class="list-group-item"><strong>Email:</strong> {{ $employee->email }}</li>
                             <li class="list-group-item"><strong>Department:</strong> {{ $employee->department }}</li>
                             <li class="list-group-item"><strong>Designation:</strong> {{ $employee->designation }}</li>
+                            <li class="list-group-item"><strong>Employment Type:</strong> {{ $employee->employment_type }}</li>
                         </ul>
                     </div>
                 </div>

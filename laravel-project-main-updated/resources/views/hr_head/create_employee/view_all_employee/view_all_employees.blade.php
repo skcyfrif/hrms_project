@@ -35,7 +35,7 @@
                                         <td>{{ $employee->email }}</td>
                                         <td>{{ $employee->user_role }}</td>
                                         <td>
-                                            <a href="{{route('offer.employee' , $employee->id)}}" class="btn btn-inverse-danger" style="background-color: #28a745; color: white; border: 1.5px solid #155724;"> Appointment Letter</a>
+                                            <a href="{{route('offer.employee' , $employee->id)}}" target="_blank" class="btn btn-inverse-danger" style="background-color: #28a745; color: white; border: 1.5px solid #155724;"> Appointment Letter</a>
                                         </td>
                                     </tr>
                                 @endforeach

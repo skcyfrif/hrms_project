@@ -47,11 +47,7 @@
                                     function handleRequestChange(select) {
                                         const selected = select.value;
                                         showForm(selected);
-                                        // if (selected === 'make-permanent') {
-                                        //     window.location.href = "{{ route('make.permanent.form') }}"; // redirects to new page
-                                        // } else {
-                                        //     showForm(selected);
-                                        // }
+                                        
                                     }
 
                                     function showForm(type) {

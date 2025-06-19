@@ -22,7 +22,7 @@
                                 </div>
                             @endif
 
-                            <form method="POST" action="{{ route('form.submits') }}">
+                            <form method="POST" action="{{ route('form.hrm.submits') }}">
                                 @csrf
 
                                 <div class="mb-4">

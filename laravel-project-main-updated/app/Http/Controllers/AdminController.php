@@ -6,6 +6,8 @@ use App\Models\User;
 use App\Models\Attendance;
 use App\Models\Subu;
 use App\Models\Employeeattendance;
+use App\Models\ProfileUpdateRequest;
+use App\Models\AccountUpdateRequest;
 
 use App\Models\Mypayslip;
 use App\Models\Salary;
@@ -23,6 +25,8 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\ContactMail;
 use Illuminate\Support\Facades\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use App\Models\Termination;
+use App\Mail\TerminationMail;
 
 
 
@@ -123,7 +127,7 @@ public function ShowEmply()
 
         $request->session()->regenerateToken();
 
-        return redirect('/admin/login');
+        return redirect('/login');
     } // End method
 
     public function AdminLogin()
@@ -522,7 +526,7 @@ public function viewAllHrHeadsAttendances(Request $request)
         $head->filteredAttendances = $records->sortBy('date')->values();
     }
 
-    return view('admin.attendancestatus.hr_head_attendance_status', compact('hrHeads', 'month'));
+    return view('admin.employee_management.attendancestatus.hr_head_attendance_status', compact('hrHeads', 'month'));
 }
 
 
@@ -585,7 +589,7 @@ public function viewAllHrmanagerAttendances(Request $request)
         // Sort records by date
         $head->filteredAttendances = $records->sortBy('date')->values();
     }
-    return view('admin.attendancestatus.all_hr_managers_attendance', compact('hrHeads', 'month'));
+    return view('admin.employee_management.attendancestatus.all_hr_managers_attendance', compact('hrHeads', 'month'));
 }
 
 public function viewAllreportmanagerAttendances(Request $request)
@@ -644,7 +648,7 @@ public function viewAllreportmanagerAttendances(Request $request)
         // Sort records by date
         $head->filteredAttendances = $records->sortBy('date')->values();
     }
-    return view('admin.attendancestatus.all_report_managers_attendance', compact('hrHeads', 'month'));
+    return view('admin.employee_management.attendancestatus.all_report_managers_attendance', compact('hrHeads', 'month'));
 }
 
 
@@ -706,7 +710,7 @@ public function viewAllEmployeesAttendances(Request $request)
     }
 
 
-    return view('admin.attendancestatus.all_employees_attendance', compact('hrHeads', 'month'));
+    return view('admin.employee_management.attendancestatus.all_employees_attendance', compact('hrHeads', 'month'));
 }
 
 
@@ -1133,7 +1137,7 @@ public function viewAllHrHeadsLeaves(Request $request)
     ->whereHas('leave')
     ->get();
 
-    return view('admin.leavestatus.hr_head_leave_status', compact('hrHeads', 'selectedMonth', 'month', 'year'));
+    return view('admin.employee_management.leavestatus.hr_head_leave_status', compact('hrHeads', 'selectedMonth', 'month', 'year'));
 }
 
 
@@ -1175,7 +1179,7 @@ public function viewAllHrmLeaves(Request $request)
     ->get();
 
 
-    return view('admin.leavestatus.all_hr_managers_leave', compact('hrHeads', 'selectedMonth', 'month', 'year'));
+    return view('admin.employee_management.leavestatus.all_hr_managers_leave', compact('hrHeads', 'selectedMonth', 'month', 'year'));
 }
 
 
@@ -1216,7 +1220,7 @@ public function viewAllRmLeaves(Request $request)
     ->get();
 
 
-    return view('admin.leavestatus.all_rm_leavestatus', compact('hrHeads', 'selectedMonth', 'month', 'year'));
+    return view('admin.employee_management.leavestatus.all_rm_leavestatus', compact('hrHeads', 'selectedMonth', 'month', 'year'));
 }
 
 
@@ -1256,7 +1260,7 @@ public function viewAllEmployeeLeaves(Request $request)
     ->whereHas('leave')
     ->get();
 
-    return view('admin.leavestatus.all_employee_leavestatus', compact('hrHeads', 'selectedMonth', 'month', 'year'));
+    return view('admin.employee_management.leavestatus.all_employee_leavestatus', compact('hrHeads', 'selectedMonth', 'month', 'year'));
 }
 
 
@@ -1294,7 +1298,7 @@ public function viewAllEmployeeLeaves(Request $request)
         }])
         ->get();
 
-    return view('admin.claimstatus.hr_head_claim_status', compact('hrHeads', 'month', 'year'));
+    return view('admin.employee_management.claimstatus.hr_head_claim_status', compact('hrHeads', 'month', 'year'));
 }
 
 public function viewAllHrmClaims(Request $request)
@@ -1325,7 +1329,7 @@ public function viewAllHrmClaims(Request $request)
         }])
         ->get();
 
-    return view('admin.claimstatus.all_hr_managers_claim', compact('hrHeads', 'month', 'year'));
+    return view('admin.employee_management.claimstatus.all_hr_managers_claim', compact('hrHeads', 'month', 'year'));
 }
 
 
@@ -1357,7 +1361,7 @@ public function viewAllRmClaims(Request $request)
         }])
         ->get();
 
-    return view('admin.claimstatus.all_report_managers_claim', compact('hrHeads', 'month', 'year'));
+    return view('admin.employee_management.claimstatus.all_report_managers_claim', compact('hrHeads', 'month', 'year'));
 }
 
 public function viewAllEmployeeClaims(Request $request)
@@ -1387,7 +1391,7 @@ public function viewAllEmployeeClaims(Request $request)
             }
         }])
         ->get();
-    return view('admin.claimstatus.all_employee_claim', compact('hrHeads', 'month', 'year'));
+    return view('admin.employee_management.claimstatus.all_employee_claim', compact('hrHeads', 'month', 'year'));
 }
 
 
@@ -1408,7 +1412,7 @@ public function viewAllEmployeeClaims(Request $request)
               ->where('created_by', auth()->user()->id);  // Filter by logged-in manager's ID
     })->latest()->get();
 
-    return view('admin.hrhead_leave_aproval.leavestatus', compact('approvals'));
+    return view('admin.requeststatusof_hr_head.hrhead_leave_aproval.leavestatus', compact('approvals'));
     }
 
 public function approveLeaveofhrHead($id)
@@ -1537,7 +1541,7 @@ public function ClaimApprovalStatustoHrhead()
 
 // dd($claims);
 
-return view('admin.hrhead_claim_aproval.hhead_claim_status', compact('claims'));
+return view('admin.requeststatusof_hr_head.hrhead_claim_aproval.hhead_claim_status', compact('claims'));
 }
 
 public function approveClaimOfHrhead($id)
@@ -2142,6 +2146,217 @@ public function HrAddSalaries()
         // Return the view with the data
         return view('admin.payroll_management.muster_roll.salary_structure.view_salary_slip', compact('employee', 'payslip'));
     }
+
+
+    /////////////////request form update/ update profile information/////////////
+
+
+
+
+public function UpdateProfileInfo()
+{
+    $requests = ProfileUpdateRequest::with('employee')
+                ->whereHas('employee', function ($query) {
+                    $query->where('user_role', 'head');
+                })
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+    return view('admin.requeststatusof_hr_head.profile_requests', compact('requests'));
+}
+
+
+
+public function approve($id)
+{
+    $profileUpdateRequest = ProfileUpdateRequest::findOrFail($id);
+    $employee = Subu::findOrFail($profileUpdateRequest->employee_id);
+
+    $updateData = [
+        'name' => $profileUpdateRequest->name,
+        'email' => $profileUpdateRequest->email,
+        'phone_number' => $profileUpdateRequest->phone_number,
+        'current_address_line1' => $profileUpdateRequest->current_address_line1,
+        'current_address_line2' => $profileUpdateRequest->current_address_line2,
+        'current_city' => $profileUpdateRequest->current_city,
+        'current_state' => $profileUpdateRequest->current_state,
+        'current_district' => $profileUpdateRequest->current_district,
+        'current_pin' => $profileUpdateRequest->current_pin,
+    ];
+
+    $employee->update($updateData);
+
+    $profileUpdateRequest->admin_status = 'adminapproved';
+    $profileUpdateRequest->save();
+
+    return redirect()->back()->with('success', 'Profile update approved and applied.');
+}
+
+
+
+public function reject($id)
+{
+    $request = ProfileUpdateRequest::findOrFail($id);
+    $request->update(['admin_status' => 'adminrejected']);
+
+    return back()->with('info', 'Request rejected.');
+}
+
+
+
+
+/////////////////////bank accounts details update///////////////
+public function accountUpdateRequests()
+{
+
+     $requests = AccountUpdateRequest::with('account')
+                ->whereHas('account', function ($query) {
+                    $query->where('user_role', 'head');
+                })
+                ->orderBy('created_at', 'desc')
+                ->get();
+    // $requests = AccountUpdateRequest::with('account')
+    //         ->orderBy('created_at', 'desc')
+    //         ->get();
+    return view('admin.requeststatusof_hr_head.account_requests', compact('requests'));
+}
+
+
+
+
+
+public function approveAccountRequest($id)
+{
+    $request = AccountUpdateRequest::findOrFail($id);
+    $employee = Subu::findOrFail($request->employee_id);
+
+    $updateData = [
+        'bank_name' => $request->bank_name,
+        'branch_name' => $request->branch_name,
+        'account_number' => $request->account_number,
+        'ifsc_code' => $request->ifsc_code,
+    ];
+
+    $employee->update($updateData);
+    $request->admin_status = 'adminapproved';
+    $request->save();
+
+    return back()->with('success', 'Account details approved and updated.');
+}
+
+
+
+
+public function rejectAccountRequest($id)
+{
+    $request = AccountUpdateRequest::findOrFail($id);
+    $request->update(['admin_status' => 'adminrejected']);
+
+    return back()->with('success', 'Account details update request rejected.');
+}
+
+
+
+
+////////////// Termination letter //////////////
+
+// List all terminations
+//     public function indexTer()
+// {
+//     // Get terminations where the related subus have the role 'head'
+//     $terminations = Termination::with(['subu' => function ($query) {
+//         $query->where('user_role', 'head');
+//     }])->get();
+
+//     return view('admin.terminations.index', compact('terminations'));
+// }
+
+
+
+
+public function indexTer()
+{
+    $terminations = Termination::with(['subu:id,employee_id,name']) // only fetch necessary fields
+        ->whereHas('subu', function ($query) {
+            $query->where('user_role', 'head');
+        })
+        ->get();
+
+    return view('admin.terminations.index', compact('terminations'));
+}
+
+
+
+
+
+    public function createTer()
+{
+    $loggedInHRHeadId = Auth::id(); // HR Head's user_id
+
+    // Step 1: Get all HR Managers created by this HR Head
+    $hrManagers = Subu::where('created_by', $loggedInHRHeadId)->get();
+
+    // Step 2: Get all Employees created by those HR Managers
+    $employeeIds = $hrManagers->pluck('id'); // HR Managers' IDs
+    $employees = Subu::whereIn('created_by', $employeeIds)->get();
+
+    // Merge both HR Managers and Employees into a single collection
+    $allUsers = $hrManagers->merge($employees);
+$notification = [
+            'message'       => 'claim deleted successfully',
+            'alert-type'    => 'success'
+        ];
+
+        // return redirect()->route('claim.formhrhead')->with($notification);
+    return view('admin.terminations.create', compact('allUsers'));
+}
+
+
+
+    // Store the termination reason in the database
+   public function storeTer(Request $request)
+{
+    $request->validate([
+        'employee_id' => 'required',
+        'reason' => 'required|string',
+    ]);
+
+    Termination::create([
+        'employee_id' => $request->employee_id,
+        'reason' => $request->reason,
+    ]);
+
+    $notification = [
+        'message'    => 'Termination Added successfully',
+        'alert-type' => 'success'
+    ];
+
+    return redirect()->route('terminations.hr')->with($notification);
+}
+
+
+
+
+
+    // Show termination details in a popup
+    public function showTer($id)
+    {
+        $termination = Termination::with('subu')->findOrFail($id);
+        return response()->json($termination);
+    }
+
+
+
+
+    // Generate the termination letter for the employee
+    public function terminationLetterTer($id)
+    {
+        $termination = Termination::with('subu')->findOrFail($id);
+     Mail::to($termination->subu->email)->send(new TerminationMail($termination));
+
+        return view('admin.terminations.letter', compact('termination'));
+    }
+
 
 
 }

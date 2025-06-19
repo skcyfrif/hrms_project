@@ -14,7 +14,8 @@
                                     <select name="hr_manager_id" class="form-control" required>
                                         <option value="">-- Select HR Manager --</option>
                                         @foreach ($hrManagers as $manager)
-                                            <option value="{{ $manager->id }}" {{ request('hr_manager_id') == $manager->id ? 'selected' : '' }}>
+                                            <option value="{{ $manager->id }}"
+                                                {{ request('hr_manager_id') == $manager->id ? 'selected' : '' }}>
                                                 {{ $manager->name }}
                                             </option>
                                         @endforeach
@@ -26,7 +27,8 @@
                                     <select name="month" class="form-control" required>
                                         <option value="">-- Select Month --</option>
                                         @foreach (range(1, 12) as $month)
-                                            <option value="{{ $month }}" {{ request('month') == $month ? 'selected' : '' }}>
+                                            <option value="{{ $month }}"
+                                                {{ request('month') == $month ? 'selected' : '' }}>
                                                 {{ \Carbon\Carbon::create()->month($month)->format('F') }}
                                             </option>
                                         @endforeach
@@ -38,7 +40,8 @@
                                     <select name="year" class="form-control" required>
                                         <option value="">-- Select Year --</option>
                                         @for ($year = 2019; $year <= now()->year; $year++)
-                                            <option value="{{ $year }}" {{ request('year') == $year ? 'selected' : '' }}>
+                                            <option value="{{ $year }}"
+                                                {{ request('year') == $year ? 'selected' : '' }}>
                                                 {{ $year }}
                                             </option>
                                         @endfor
@@ -62,38 +65,47 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($employees as $key => $head)
+                                    @php $sl = 1; @endphp
+                                    @forelse ($employees as $head)
+                                        @if (!empty($head->claim) && $head->claim->count())
+                                            @foreach ($head->claim as $claims)
+                                                <tr>
+                                                    <td>{{ $sl++ }}</td>
+                                                    <td>{{ $head->employee_id }}</td>
+                                                    <td>{{ $head->name }}</td>
+                                                    <td>{{ $head->email }}</td>
+                                                    <td>{{ $head->user_role }}</td>
+                                                    <td>{{ \Carbon\Carbon::parse($claims->claim_date)->format('d/m/Y') }}
+                                                    </td>
+                                                    <td>
+                                                        @if ($claims->status === 'approve')
+                                                            <span class="badge bg-success fs-6 px-3 py-2">Approved</span>
+                                                        @elseif ($claims->status === 'reject')
+                                                            <span class="badge bg-danger fs-6 px-3 py-2">Rejected</span>
+                                                        @else
+                                                            <span
+                                                                class="badge bg-warning text-dark fs-6 px-3 py-2">Pending</span>
+                                                        @endif
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        @else
+                                            <tr>
+                                                <td>{{ $sl++ }}</td>
+                                                <td>{{ $head->employee_id }}</td>
+                                                <td>{{ $head->name }}</td>
+                                                <td>{{ $head->email }}</td>
+                                                <td>{{ $head->user_role }}</td>
+                                                <td>- - -</td>
+                                                <td><span class="badge bg-info fs-6 px-3 py-2">No Claim Applied</span></td>
+                                            </tr>
+                                        @endif
+                                    @empty
                                         <tr>
-                                            <td>{{ $key + 1 }}</td>
-                                            <td>{{ $head->employee_id }}</td>
-                                            <td>{{ $head->name }}</td>
-                                            <td>{{ $head->email }}</td>
-                                            <td>{{ $head->user_role }}</td>
-                                            <td>
-                                                @if ($head->claim)
-                                                    {{ $head->claim->claim_date }}
-                                                @else
-                                                    - - -
-                                                @endif
-                                            </td>
-
-                                            <td>
-                                                @if ($head->claim)
-                                                    @if ($head->claim->status === 'approve')
-                                                        <span class="badge bg-success fs-6 px-3 py-2">Approved</span>
-                                                    @elseif($head->claim->status === 'reject')
-                                                        <span class="badge bg-danger fs-6 px-3 py-2">Rejected</span>
-                                                    @else
-                                                        <span
-                                                            class="badge bg-warning text-dark fs-6 px-3 py-2">Pending</span>
-                                                    @endif
-                                                @else
-                                                    <span class="badge bg-info fs-6 px-3 py-2">No Claim Applied</span>
-                                                @endif
-                                            </td>
-
+                                            <td colspan="7" class="text-center">No claims found for the selected month
+                                                and year.</td>
                                         </tr>
-                                    @endforeach
+                                    @endforelse
                                 </tbody>
                             </table>
                         </div>

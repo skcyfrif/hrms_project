@@ -8,6 +8,8 @@ use App\Models\HrHead;
 use App\Models\HrManager;
 use App\Models\Subu;
 use App\Models\Employeeattendance;
+use App\Models\ProfileUpdateRequest;
+use App\Models\AccountUpdateRequest;
 use App\Models\Leave;
 use App\Models\Leavebalance;
 use App\Models\Salary;
@@ -20,6 +22,11 @@ use App\Models\Payrolls;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ContactMail;
+use App\Models\Termination;
+use App\Mail\TerminationMail;
+
+
+
 
 
 use Illuminate\Support\Facades\Response;
@@ -759,20 +766,18 @@ public function PayslipPageHr()
 public function HrPayslipView(Request $request)
 {
     $user = auth()->user();
-// dd($request->toArray());
-    // Retrieve the logged-in employee
+
     $employee = Subu::where('user_id', $user->id)->first();
-    // dd($employee->toArray());
+
 
     if (!$employee) {
         return response()->json(['error' => 'Hr not found'], 404);
     }
 
-    // Get year and month from request, default to current year and month
+
     $year = $request->input('year', now()->year);
     $month = $request->input('month', now()->format('m'));
 
-    // Find the payslip based on employee_id and created_at year-month
     $payslip = Salary::where('employee_id', $employee->id)
         ->whereYear('created_at', $year)
         ->whereMonth('created_at', $month)
@@ -2440,97 +2445,7 @@ public function rejectClaimSubmitbyHrHead(Request $request)
     }
 
 
-    public function UpdateRequestHr()
-    {
-        $employee = Auth::user()->subu()->first();
-
-        return view('hr_head.hrhead.request.hr_update_request', compact('employee'));
-    }
-
-
-    public function submitByHrHead(Request $request)
-    {
-        $type = $request->input('request_type');
-        $user = auth()->user();
-        $employee = Subu::where('user_id', $user->id)->first();
-        switch ($type) {
-            case 'salary-increment':
-                $request->validate([
-                    'current_salary' => 'required|numeric',
-                    'expected_increment' => 'required|numeric',
-                ]);
-                break;
-
-            case 'make-permanent':
-                $request->validate([
-                    'check_in_status' => 'required|in:on', // checkbox returns "on" if checked
-                ]);
-
-                // $employee = Auth::guard('employee')->user(); // assuming employee is logged in
-
-                Makepermanent::create([
-                    'employee_id' => $employee->id,
-                    'user_id' => $user->id,
-                    'request_type' => $type,
-                    'check_in_status' => $request->has('check_in_status'), // will be true/false
-                ]);
-
-                return back()->with('success', 'Make Permanent request submitted successfully!');
-                break;
-
-            case 'account-details-update':
-                $request->validate([
-                    'bank_name' => 'required|string',
-                    'branch_name' => 'required|string',
-                    'account_number' => 'required|string',
-                    'ifsc_code' => 'required|string',
-                ]);
-                $employee->update([
-                    'bank_name' => $request->input('bank_name'),
-                    'branch_name' => $request->input('branch_name'),
-                    'account_number' => $request->input('account_number'),
-                    'ifsc_code' => $request->input('ifsc_code'),
-                ]);
-
-                return back()->with('success', 'Account details updated successfully!');
-
-                break;
-                case 'update-profile':
-                    // $request->validate([
-                    //     'bank_name' => 'required|string',
-                    //     'branch_name' => 'required|string',
-                    //     'account_number' => 'required|string',
-                    //     'ifsc_code' => 'required|string',
-                    // ]);
-                    $employee->update([
-                        'name' => $request->input('name'),
-                        'email' => $request->input('email'),
-                        'phone_number' => $request->input('phone_number'),
-                        'current_address_line1' => $request->input('current_address_line1'),
-                        'current_address_line2' => $request->input('current_address_line2'),
-                        'current_city' => $request->input('current_city'),
-                        'current_state' => $request->input('current_state'),
-                        'current_district' => $request->input('current_district'),
-                        'current_pin' => $request->input('current_pin'),
-                    ]);
-
-                    return back()->with('success', 'Account details updated successfully!');
-
-                    break;
-
-            case 'any-issue':
-                $request->validate([
-                    'issue_description' => 'required|string',
-                ]);
-                break;
-        }
-
-        // You can store the other requests similarly...
-        return back()->with('success', 'Form submitted successfully!');
-    }
-
-
-//////////////////////////////////////////Pay roll//////////////////////////////////////////
+    //////////////////////////////////////////Pay roll//////////////////////////////////////////
 
 
 public function PayrollListOfHrm()
@@ -2543,6 +2458,325 @@ public function PayrollListOfHrm()
 
     return view('hr_head.payroll_management.muster_roll.payroll', compact('payrolls'));
 }
+
+
+/////////// request /////////////////////
+    public function UpdateRequestHr()
+    {
+        $employee = Auth::user()->subu()->first();
+
+        return view('hr_head.hrhead.request.hr_update_request', compact('employee'));
+    }
+
+
+    public function submitByHrHead(Request $request)
+{
+    $type = $request->input('request_type');
+    $user = auth()->user();
+    $employee = Subu::where('user_id', $user->id)->first();
+
+    switch ($type) {
+        case 'salary-increment':
+            $request->validate([
+                'current_salary' => 'required|numeric',
+                'expected_increment' => 'required|numeric',
+            ]);
+            // Handle salary increment logic...
+            break;
+
+        case 'account-details-update':
+            $request->validate([
+                'bank_name' => 'required|string',
+                'branch_name' => 'required|string',
+                'account_number' => 'required|string',
+                'ifsc_code' => 'required|string',
+            ]);
+
+           AccountUpdateRequest::create([
+                'employee_id' => $employee->id,
+                'bank_name' => $request->input('bank_name'),
+                'branch_name' => $request->input('branch_name'),
+                'account_number' => $request->input('account_number'),
+                'ifsc_code' => $request->input('ifsc_code'),
+                'admin_status' => 'adminpending',
+            ]);
+
+            return back()->with('success', 'Account update request sent for admin approval');
+
+
+        case 'update-profile':
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|max:255',
+                'phone_number' => 'required|string|max:20',
+                'current_address_line1' => 'nullable|string',
+                'current_address_line2' => 'nullable|string',
+                'current_city' => 'nullable|string',
+                'current_state' => 'nullable|string',
+                'current_district' => 'nullable|string',
+                'current_pin' => 'nullable|string|max:10',
+            ]);
+
+            ProfileUpdateRequest::create([
+                'employee_id' => $employee->id,
+                'name' => $request->name,
+                'email' => $request->email,
+                'phone_number' => $request->phone_number,
+                'current_address_line1' => $request->current_address_line1,
+                'current_address_line2' => $request->current_address_line2,
+                'current_city' => $request->current_city,
+                'current_state' => $request->current_state,
+                'current_district' => $request->current_district,
+                'current_pin' => $request->current_pin,
+                'admin_status' => 'adminpending',
+            ]);
+
+            return back()->with('success', 'Profile update request sent for admin approval.');
+
+        case 'any-issue':
+            $request->validate([
+                'issue_description' => 'required|string',
+            ]);
+            // Handle issue report logic...
+            break;
+    }
+
+    return back()->with('success', 'Form submitted successfully!');
+}
+
+
+
+
+public function viewMyProfileUpdateRequests()
+{
+    $employee = Auth::user()->subu()->first();
+
+
+    if (!$employee) {
+        return redirect()->back()->with('error', 'No employee record found.');
+    }
+
+    // Fetch all profile update requests for this employee
+    $requests = ProfileUpdateRequest::where('employee_id', $employee->id)
+                                    ->orderBy('created_at', 'desc')
+                                    ->get();
+
+    return view('hr_head.hrhead.request_approval.profile_update', compact('requests'));
+}
+
+
+public function viewMyaccountUpdateRequests()
+{
+    $employee = Auth::user()->subu()->first();
+
+
+    if (!$employee) {
+        return redirect()->back()->with('error', 'No employee record found.');
+    }
+
+    // Fetch all profile update requests for this employee
+    $requests = AccountUpdateRequest::where('employee_id', $employee->id)
+                                    ->orderBy('created_at', 'desc')
+                                    ->get();
+
+    return view('hr_head.hrhead.request_approval.account_update-status', compact('requests'));
+}
+
+
+
+
+
+
+
+
+/////////////////request form update/ update profile information/////////////
+
+
+
+public function UpdateProfileOfHrm()
+{
+    $hrHeadId = auth()->id(); // logged-in HR Head ID
+
+    $requests = ProfileUpdateRequest::with('employee')
+        ->whereHas('employee', function ($query) use ($hrHeadId) {
+            $query->where('created_by', $hrHeadId);  // or 'hr_head_id', whatever your column is
+        })
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+    return view('hr_head.request.profile_requests', compact('requests'));
+}
+
+
+
+
+public function approveByHr($id)
+{
+    $profileUpdateRequest = ProfileUpdateRequest::findOrFail($id);
+    $employee = Subu::findOrFail($profileUpdateRequest->employee_id);
+
+    $updateData = [
+        'name' => $profileUpdateRequest->name,
+        'email' => $profileUpdateRequest->email,
+        'phone_number' => $profileUpdateRequest->phone_number,
+        'current_address_line1' => $profileUpdateRequest->current_address_line1,
+        'current_address_line2' => $profileUpdateRequest->current_address_line2,
+        'current_city' => $profileUpdateRequest->current_city,
+        'current_state' => $profileUpdateRequest->current_state,
+        'current_district' => $profileUpdateRequest->current_district,
+        'current_pin' => $profileUpdateRequest->current_pin,
+    ];
+
+    $employee->update($updateData);
+
+    $profileUpdateRequest->hr_status = 'hrapproved';
+    $profileUpdateRequest->save();
+
+    return redirect()->back()->with('success', 'Profile update approved and applied.');
+}
+
+
+
+public function rejectByHr($id)
+{
+    $request = ProfileUpdateRequest::findOrFail($id);
+    $request->update(['hr_status' => 'hrrejected']);
+
+    return back()->with('info', 'Request rejected.');
+}
+
+
+/////////////////////bank accounts details update///////////////
+public function accountUpdateRequestsOfHrm()
+
+{
+$hrHeadId = auth()->id(); // logged-in HR Head ID
+
+    $requests = AccountUpdateRequest::with('account')
+        ->whereHas('account', function ($query) use ($hrHeadId) {
+            $query->where('created_by', $hrHeadId)
+                  ->where('user_role', 'manager'); // filter by role
+        })
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+    return view('hr_head.hrhead.request_approval.account_update', compact('requests'));
+}
+
+
+
+/////////// accountdetails update request approve and reject ////////////
+
+public function approveAccountRequestByHr($id)
+{
+    $request = AccountUpdateRequest::findOrFail($id);
+    $employee = Subu::findOrFail($request->employee_id);
+
+    $updateData = [
+        'bank_name' => $request->bank_name,
+        'branch_name' => $request->branch_name,
+        'account_number' => $request->account_number,
+        'ifsc_code' => $request->ifsc_code,
+    ];
+
+    $employee->update($updateData);
+    $request->hr_status = 'hrapproved';
+    $request->save();
+
+    return back()->with('success', 'Account details approved and updated.');
+}
+
+
+
+
+public function rejectAccountRequestByHr($id)
+{
+    $request = AccountUpdateRequest::findOrFail($id);
+    $request->update(['hr_status' => 'hrrejected']);
+
+    return back()->with('success', 'Account details update request rejected.');
+}
+
+
+
+////////////// Termination letter //////////////
+
+
+// List all terminations
+    public function index()
+    {
+
+
+$terminations = Termination::with(['subu:id,employee_id,name']) // only fetch necessary fields
+        ->whereHas('subu', function ($query) {
+            $query->where('user_role', 'manager');
+        })
+        ->get();
+
+
+        return view('hr_head.terminations.index', compact('terminations'));
+    }
+
+
+    public function create()
+{
+    $loggedInHRHeadId = Auth::id(); // HR Head's user_id
+
+    // Step 1: Get all HR Managers created by this HR Head
+    $hrManagers = Subu::where('created_by', $loggedInHRHeadId)->get();
+
+    // Step 2: Get all Employees created by those HR Managers
+    $employeeIds = $hrManagers->pluck('id'); // HR Managers' IDs
+    $employees = Subu::whereIn('created_by', $employeeIds)->get();
+
+    // Merge both HR Managers and Employees into a single collection
+    $allUsers = $hrManagers->merge($employees);
+    $notification = [
+                    'message'       => 'claim deleted successfully',
+                    'alert-type'    => 'success'
+                ];
+
+        // return redirect()->route('claim.formhrhead')->with($notification);
+    return view('hr_head.terminations.create', compact('allUsers'));
+}
+
+
+
+    // Store the termination reason in the database
+   public function store(Request $request)
+{
+    $request->validate([
+        'employee_id' => 'required',
+        'reason' => 'required|string',
+    ]);
+
+    Termination::create([
+        'employee_id' => $request->employee_id,
+        'reason' => $request->reason,
+    ]);
+
+    $notification = [
+        'message'    => 'Termination Added successfully',
+        'alert-type' => 'success'
+    ];
+
+    return redirect()->route('terminations.index')->with($notification);
+}
+
+
+
+
+
+
+
+    // Generate the termination letter for the employee
+    public function terminationLetter($id)
+    {
+        $termination = Termination::with('subu')->findOrFail($id);
+     Mail::to($termination->subu->email)->send(new TerminationMail($termination));
+
+        return view('hr_head.terminations.letter', compact('termination'));
+    }
 
 
 

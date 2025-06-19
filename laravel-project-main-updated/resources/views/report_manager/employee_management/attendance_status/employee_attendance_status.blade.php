@@ -46,8 +46,8 @@
                         <th>Status</th>
                         <th>Check-in</th>
                         <th>System Time</th>
-                        <th>Approval Status</th>
-                        <th>Status</th>
+                        {{-- <th>Approval Status</th>
+                        <th>Status</th> --}}
                     </tr>
                 </thead>
                 <tbody>
@@ -62,7 +62,7 @@
                                 </td>
                                 <td>{{ $a->created_at ? \Carbon\Carbon::parse($a->created_at)->format('H:i') : '---' }}
                                 </td>
-                                <td>{{ $a->rm_approval_status }}</td>
+                                {{-- <td>{{ $a->rm_approval_status }}</td>
                                 <td>
                                     @if ($a->status === 'On Leave')
                                         <span class="text-muted">Leave Approved</span>
@@ -72,7 +72,7 @@
                                         <a href="{{ route('attendanceinrm.absent', $a->id) }}"
                                             class="btn btn-danger">Absent</a>
                                     @endif
-                                </td>
+                                </td> --}}
 
                             </tr>
                         @endforeach

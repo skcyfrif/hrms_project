@@ -194,6 +194,8 @@
 </nav> --}}
 
 
+<!-- Bootstrap Bundle (includes Popper) -->
+
 
 
 
@@ -210,35 +212,32 @@
     </div>
     <div class="sidebar-body">
         <ul class="nav">
-            <li class="nav-item nav-category">Employee Management</li>
+            <li class="nav-item nav-category" style="color: #11e4a4; font-size: 14px; font-weight: 700;">HR Head </li>
             <li class="nav-item">
                 <a href="{{ route('hrhead.dashboard') }}" class="nav-link">
-                    <i class="link-icon" data-feather="box"></i>
+                    <i class="link-icon" data-feather="home"></i>
                     <span class="link-title">Dashboard</span>
                 </a>
             </li>
-
-
-            <li class="nav-item nav-category">HR Head </li>
-            <li class="nav-item">
+            <li class="nav-item mt-2">
                 <a href="{{ route('hrmanager.list') }}" class="nav-link">
-                    <i class="link-icon" data-feather="box"></i>
+                    <i class="link-icon" data-feather="user-plus"></i>
                     <span class="link-title">Add HrManager</span>
                 </a>
             </li>
-            <li class="nav-item">
+            <li class="nav-item mt-2">
                 <a href="{{ route('hrhead.attendance') }}" class="nav-link">
-                    <i class="link-icon" data-feather="box"></i>
+                    <i class="link-icon" data-feather="calendar"></i>
                     <span class="link-title">Add Attendance</span>
                 </a>
             </li>
 
-            <li class="nav-item">
+            <li class="nav-item mt-2">
                 <a href="#" class="nav-link" data-bs-toggle="collapse" data-bs-target="#leaveManagementMenu"
                     aria-expanded="false">
-                    <i class="link-icon" data-feather="box"></i>
+                    <i class="link-icon" data-feather="clock"></i>
                     <span class="link-title">Leave Management</span>
-                    <i class="menu-arrow"></i>
+                    <i class="menu-arrow" data-feather="chevron-down"></i>
                 </a>
                 <ul class="collapse" id="leaveManagementMenu">
                     <li class="nav-item">
@@ -253,12 +252,12 @@
                 </ul>
             </li>
 
-            <li class="nav-item">
+            <li class="nav-item mt-2">
                 <a href="#" class="nav-link" data-bs-toggle="collapse" data-bs-target="#claimFormMenu"
                     aria-expanded="false">
-                    <i class="link-icon" data-feather="box"></i>
+                    <i class="link-icon" data-feather="file-text"></i>
                     <span class="link-title">Claim Form</span>
-                    <i class="menu-arrow"></i>
+                    <i class="menu-arrow" data-feather="chevron-down"></i>
                 </a>
                 <ul class="collapse" id="claimFormMenu">
                     <li class="nav-item">
@@ -270,12 +269,12 @@
                 </ul>
             </li>
 
-            <li class="nav-item">
+            <li class="nav-item mt-2">
                 <a href="#" class="nav-link" data-bs-toggle="collapse"
                     data-bs-target="#payrollandCompensationMenu" aria-expanded="false">
-                    <i class="link-icon" data-feather="box"></i>
-                    <span class="link-title">Payroll and Compensation</span>
-                    <i class="menu-arrow"></i>
+                    <i class="link-icon" data-feather="dollar-sign"></i>
+                    <span class="link-title">Payslip</span>
+                    <i class="menu-arrow" data-feather="chevron-down"></i>
                 </a>
                 <ul class="collapse" id="payrollandCompensationMenu">
                     <li class="nav-item">
@@ -287,12 +286,12 @@
 
 
 
-            <li class="nav-item">
+            <li class="nav-item mt-2">
                 <a href="#" class="nav-link" data-bs-toggle="collapse" data-bs-target="#leaveApprovalMenu"
                     aria-expanded="false">
-                    <i class="link-icon" data-feather="box"></i>
+                    <i class="link-icon" data-feather="check-square"></i>
                     <span class="link-title">Leave Approval</span>
-                    <i class="menu-arrow"></i>
+                    <i class="menu-arrow" data-feather="chevron-down"></i>
                 </a>
                 <ul class="collapse" id="leaveApprovalMenu">
                     <li class="nav-item">
@@ -302,12 +301,12 @@
                 </ul>
             </li>
 
-            <li class="nav-item">
+            <li class="nav-item mt-2">
                 <a href="#" class="nav-link" data-bs-toggle="collapse" data-bs-target="#claimApprovalMenu"
                     aria-expanded="false">
-                    <i class="link-icon" data-feather="box"></i>
+                    <i class="link-icon" data-feather="thumbs-up"></i>
                     <span class="link-title">Claim Approval</span>
-                    <i class="menu-arrow"></i>
+                    <i class="menu-arrow" data-feather="chevron-down"></i>
                 </a>
                 <ul class="collapse" id="claimApprovalMenu">
                     <li class="nav-item">
@@ -319,12 +318,12 @@
             </li>
 
 
-            <li class="nav-item">
+            <li class="nav-item mt-2">
                 <a href="#" class="nav-link" data-bs-toggle="collapse" data-bs-target="#musterRollMenu"
                     aria-expanded="false">
-                    <i class="link-icon" data-feather="box"></i>
+                    <i class="link-icon" data-feather="layers"></i>
                     <span class="link-title">Muster Roll</span>
-                    <i class="menu-arrow"></i>
+                    <i class="menu-arrow" data-feather="chevron-down"></i>
                 </a>
                 <ul class="collapse" id="musterRollMenu">
                     <li class="nav-item">
@@ -337,14 +336,15 @@
             </li>
 
 
-            <li class="nav-item nav-category">all employee status </li>
+            <li class="nav-item nav-category" style="color: #11e4a4; font-size: 14px; font-weight: 700;">Employee
+                Management</li>
 
             <li class="nav-item">
                 <a href="#" class="nav-link" data-bs-toggle="collapse" data-bs-target="#attendanceStatusMenu"
                     aria-expanded="false">
-                    <i class="link-icon" data-feather="box"></i>
+                    <i class="link-icon" data-feather="calendar"></i>
                     <span class="link-title">Attendance Status</span>
-                    <i class="menu-arrow"></i>
+                    <i class="menu-arrow" data-feather="chevron-down"></i>
                 </a>
                 <ul class="collapse" id="attendanceStatusMenu">
                     <li class="nav-item">
@@ -360,12 +360,12 @@
             </li>
 
 
-            <li class="nav-item">
+            <li class="nav-item mt-2">
                 <a href="#" class="nav-link" data-bs-toggle="collapse" data-bs-target="#leaveStatusMenu"
                     aria-expanded="false">
-                    <i class="link-icon" data-feather="box"></i>
+                    <i class="link-icon" data-feather="activity"></i>
                     <span class="link-title">Leave Status</span>
-                    <i class="menu-arrow"></i>
+                    <i class="menu-arrow" data-feather="chevron-down"></i>
                 </a>
                 <ul class="collapse" id="leaveStatusMenu">
                     <li class="nav-item">
@@ -381,12 +381,12 @@
             </li>
 
 
-            <li class="nav-item">
+            <li class="nav-item mt-2">
                 <a href="#" class="nav-link" data-bs-toggle="collapse" data-bs-target="#claimStatusMenu"
                     aria-expanded="false">
-                    <i class="link-icon" data-feather="box"></i>
+                    <i class="link-icon" data-feather="file"></i>
                     <span class="link-title">Claim Status</span>
-                    <i class="menu-arrow"></i>
+                    <i class="menu-arrow" data-feather="chevron-down"></i>
                 </a>
                 <ul class="collapse" id="claimStatusMenu">
                     <li class="nav-item">
@@ -401,15 +401,48 @@
                 </ul>
             </li>
 
+            <li class="nav-item mt-2">
+                <a href="#" class="nav-link" data-bs-toggle="collapse" data-bs-target="#requestStatusMenu"
+                    aria-expanded="false">
+                    <i class="link-icon" data-feather="file"></i>
+                    <span class="link-title">Hr Manager Request</span>
+                    <i class="menu-arrow" data-feather="chevron-down"></i>
+                </a>
+                <ul class="collapse" id="requestStatusMenu">
+                    <li class="nav-item">
+                        <a href="{{ route('hrm.profile.requests') }}" class="nav-link">update Profile</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('hrm.account.requests') }}" class="nav-link">update Account</a>
+                    </li>
+                </ul>
+            </li>
+
+            <li class="nav-item mt-2">
+                <a href="{{ route('terminations.index') }}" class="nav-link">
+                    <i class="link-icon" data-feather="user-x"></i>
+                    <span class="link-title">Termination Letter</span>
+                </a>
+            </li>
 
 
 
-            <li class="nav-item nav-category">Request</li>
+
+            <li class="nav-item nav-category" style="color: #11e4a4; font-size: 14px; font-weight: 700;">Request</li>
             <li class="nav-item">
                 <a href="{{ route('update.request.hr') }}" class="nav-link">
-                    <i class="link-icon" data-feather="box"></i>
+                    <i class="link-icon" data-feather="refresh-ccw"></i>
                     <span class="link-title">Request Corner</span>
                 </a>
+                <a href="{{ route('hr.myUpdateRequests') }}" class="nav-link">
+                    <i class="link-icon" data-feather="refresh-ccw"></i>
+                    <span class="link-title">My Profile Update Status</span>
+                </a>
+                <a href="{{ route('hr.myaccountUpdateRequests') }}" class="nav-link">
+                    <i class="link-icon" data-feather="refresh-ccw"></i>
+                    <span class="link-title">My Account Update Status</span>
+                </a>
+
             </li>
         </ul>
     </div>
@@ -474,33 +507,12 @@
 </script>
 
 <style>
-
-    /* .nav-item.active>.nav-link:not([data-bs-toggle="collapse"]) {
-        background-color: rgba(255, 255, 255, 0.1);
-        color: #fff;
-        font-weight: 500;
-    }
-
-    .nav-item.active>.nav-link[data-bs-toggle="collapse"] {
-        color: #fff;
-        font-weight: 500;
-    }
-
-    .collapse.show {
-        background-color: rgba(0, 0, 0, 0.1);
-    }
-
-    .nav-link.active {
-        background-color: rgba(255, 255, 255, 0.15);
-        color: #fff !important;
-        font-weight: 500;
-        border-left: 3px solid #fff;
-    }
-
-    .nav-item {} */
     .sidebar {
         background-color: #2e3b4e;
-        color: #ffffff;
+        color: white;
+
+
+
     }
 
     .nav-link {
@@ -527,11 +539,15 @@
         color: #ffffff;
     }
 
-    .nav-item.nav-category {
-        font-size: 14px;
-        padding: 10px 16px;
+    /* .nav-item.nav-category {
+        font-size: 13px;
+        padding: 12px 20px;
         color: #b0bec5;
         text-transform: uppercase;
-        letter-spacing: 1px;
-    }
+        letter-spacing: 0.05em;
+        margin-top: 0px;
+        display: block;
+        line-height: 1.5;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    } */
 </style>

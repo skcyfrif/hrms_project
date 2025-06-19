@@ -145,7 +145,7 @@
                                     <div class="col-md-4">
                                         <label for="conveyance_allowance" class="form-label">Conveyance Allowance</label>
                                         <input type="text" class="form-control" id="conveyance_allowance" name="conveyance_allowance"
-                                               value="{{ $sal->basic_salary }}" required>
+                                               value="{{ $sal->conveyance_allowance }}" required>
                                         @error('conveyance_allowance')
                                             <div class="text-danger mt-1">{{ $message }}</div>
                                         @enderror
@@ -154,7 +154,7 @@
                                     <div class="col-md-4">
                                         <label for="lunch_allowance" class="form-label">Lunch Allowance</label>
                                         <input type="text" class="form-control" id="lunch_allowance" name="lunch_allowance"
-                                               value="{{ $sal->basic_salary }}" required>
+                                               value="{{ $sal->lunch_allowance }}" required>
                                         @error('lunch_allowance')
                                             <div class="text-danger mt-1">{{ $message }}</div>
                                         @enderror
@@ -163,7 +163,7 @@
                                     <div class="col-md-4">
                                         <label for="medical_allowance" class="form-label">Medical Allowance</label>
                                         <input type="text" class="form-control" id="medical_allowance" name="medical_allowance"
-                                               value="{{ $sal->basic_salary }}" required>
+                                               value="{{ $sal->medical_allowance }}" required>
                                         @error('medical_allowance')
                                             <div class="text-danger mt-1">{{ $message }}</div>
                                         @enderror
@@ -172,7 +172,7 @@
                                     <div class="col-md-4">
                                         <label for="other_allowance" class="form-label">Other Allowance</label>
                                         <input type="text" class="form-control" id="other_allowance" name="other_allowance"
-                                               value="{{ $sal->basic_salary }}" required>
+                                               value="{{ $sal->other_allowance }}" required>
                                         @error('other_allowance')
                                             <div class="text-danger mt-1">{{ $message }}</div>
                                         @enderror
@@ -181,7 +181,7 @@
                                     <div class="col-md-4">
                                         <label for="leave_travel_allowance" class="form-label">Leave Travel Allowance</label>
                                         <input type="text" class="form-control" id="leave_travel_allowance" name="leave_travel_allowance"
-                                               value="{{ $sal->basic_salary }}" required>
+                                               value="{{ $sal->leave_travel_allowance }}" required>
                                         @error('leave_travel_allowance')
                                             <div class="text-danger mt-1">{{ $message }}</div>
                                         @enderror
@@ -190,7 +190,7 @@
                                     <div class="col-md-4">
                                         <label for="personal_pay" class="form-label">Personal  Pay</label>
                                         <input type="text" class="form-control" id="personal_pay" name="personal_pay"
-                                               value="{{ $sal->basic_salary }}" required>
+                                               value="{{ $sal->personal_pay }}" required>
                                         @error('personal_pay')
                                             <div class="text-danger mt-1">{{ $message }}</div>
                                         @enderror
@@ -210,7 +210,7 @@
                                     <div class="col-md-4">
                                         <label for="professional_tax" class="form-label">Professional Tax</label>
                                         <input type="text" class="form-control" id="professional_tax" name="professional_tax"
-                                               value="{{ $sal->basic_salary }}" required>
+                                               value="{{ $sal->professional_tax }}" required>
                                         @error('professional_tax')
                                             <div class="text-danger mt-1">{{ $message }}</div>
                                         @enderror
@@ -219,7 +219,7 @@
                                     <div class="col-md-4">
                                         <label for="esic" class="form-label">ESIC</label>
                                         <input type="text" class="form-control" id="esic" name="esic"
-                                               value="{{ $sal->basic_salary }}" required>
+                                               value="{{ $sal->esic }}" required>
                                         @error('esic')
                                             <div class="text-danger mt-1">{{ $message }}</div>
                                         @enderror
@@ -231,7 +231,7 @@
                                     <div class="col-md-4">
                                         <label for="net_salary_payables" class="form-label">Net Salary Payable</label>
                                         <input type="text" class="form-control" id="net_salary_payables" name="net_salary_payables"
-                                               value="{{ $sal->basic_salary }}" required>
+                                               value="{{ $sal->net_salary_payables }}" required>
                                         @error('net_salary_payables')
                                             <div class="text-danger mt-1">{{ $message }}</div>
                                         @enderror
@@ -240,7 +240,7 @@
                                     <div class="col-md-4">
                                         <label for="lop_days" class="form-label">LOP Days</label>
                                         <input type="text" class="form-control" id="lop_days" name="lop_days"
-                                               value="{{ $sal->basic_salary }}" required>
+                                               value="{{ $sal->lop_days }}" required>
                                         @error('lop_days')
                                             <div class="text-danger mt-1">{{ $message }}</div>
                                         @enderror
@@ -249,7 +249,7 @@
                                     <div class="col-md-4">
                                         <label for="standard_days" class="form-label">Standard Days</label>
                                         <input type="text" class="form-control" id="standard_days" name="standard_days"
-                                               value="{{ $sal->basic_salary }}" required>
+                                               value="{{ $sal->standard_days }}" required>
                                         @error('standard_days')
                                             <div class="text-danger mt-1">{{ $message }}</div>
                                         @enderror

@@ -37,7 +37,7 @@
                         <a href="{{route('edit.hrmanager' , $item->id)}}" class="btn btn-inverse-warning"> Edit</a>
                         {{-- <a href="{{route('delete.hrmanager' , $item->id)}}" class="btn btn-inverse-danger" id="delete"> Delete</a> --}}
                         <a href="{{route('view.employees' , $item->id)}}" class="btn btn-inverse-danger" style="background-color: #28a745; color: white; border: 1.5px solid #155724;"> View</a>
-                        <a href="{{route('offer.employee' , $item->id)}}" class="btn btn-inverse-danger" style="background-color: #28a745; color: white; border: 1.5px solid #155724;"> Appointment Letter</a>
+                        <a href="{{route('offer.employee' , $item->id)}}" target="_blank" class="btn btn-inverse-danger" style="background-color: #28a745; color: white; border: 1.5px solid #155724;"> Appointment Letter</a>
                         <a href="{{ route('manager.employees', $item->id) }}" class="btn btn-inverse-danger" style="background-color: #28a745; color: white; border: 1.5px solid #155724;">View All Employees</a>
                     </td>
                 </tr>

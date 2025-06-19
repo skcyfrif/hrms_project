@@ -10,6 +10,8 @@ use App\Models\Leavebalance;
 use App\Models\Makepermanent;
 use App\Models\Subu;
 use App\Models\Salary;
+use App\Models\ProfileUpdateRequest;
+use App\Models\AccountUpdateRequest;
 use App\Models\Payrolls;
 use App\Models\Mypayslip;
 // use App\Http\Controllers\Carbon;
@@ -1009,22 +1011,7 @@ public function submit(Request $request)
 
 
 
-        // case 'make-permanent':
-        //     $request->validate([
-        //         'check_in_status' => 'required|in:on', // checkbox returns "on" if checked
-        //     ]);
 
-        //     // $employee = Auth::guard('employee')->user(); // assuming employee is logged in
-
-        //     Makepermanent::create([
-        //         'employee_id' => $employee->id,
-        //         'user_id' => $user->id,
-        //         'request_type' => $type,
-        //         'check_in_status' => $request->has('check_in_status'), // will be true/false
-        //     ]);
-
-        //     return back()->with('success', 'Make Permanent request submitted successfully!');
-        //     break;
 
 
 
@@ -1075,17 +1062,45 @@ case 'make-permanent':
                 'account_number' => 'required|string',
                 'ifsc_code' => 'required|string',
             ]);
-            $employee->update([
+
+           AccountUpdateRequest::create([
+                'employee_id' => $employee->id,
                 'bank_name' => $request->input('bank_name'),
                 'branch_name' => $request->input('branch_name'),
                 'account_number' => $request->input('account_number'),
                 'ifsc_code' => $request->input('ifsc_code'),
+                'rm_status' => 'rmpending',
             ]);
 
-            return back()->with('success', 'Account details updated successfully!');
+            return back()->with('success', 'Account update request sent for  Reporting Manager approval');
+        case 'update-profile':
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|max:255',
+                'phone_number' => 'required|string|max:20',
+                'current_address_line1' => 'nullable|string',
+                'current_address_line2' => 'nullable|string',
+                'current_city' => 'nullable|string',
+                'current_state' => 'nullable|string',
+                'current_district' => 'nullable|string',
+                'current_pin' => 'nullable|string|max:10',
+            ]);
 
-            break;
+            ProfileUpdateRequest::create([
+                'employee_id' => $employee->id,
+                'name' => $request->name,
+                'email' => $request->email,
+                'phone_number' => $request->phone_number,
+                'current_address_line1' => $request->current_address_line1,
+                'current_address_line2' => $request->current_address_line2,
+                'current_city' => $request->current_city,
+                'current_state' => $request->current_state,
+                'current_district' => $request->current_district,
+                'current_pin' => $request->current_pin,
+                'm_status' => 'mpending',
+            ]);
 
+            return back()->with('success', 'Profile update request sent for hr manager approval.');
         case 'any-issue':
             $request->validate([
                 'issue_description' => 'required|string',
@@ -1097,7 +1112,44 @@ case 'make-permanent':
     return back()->with('success', 'Form submitted successfully!');
 }
 
+///////account update request //////////
+public function viewMyACcountUpdates()
+{
+    $employee = Auth::user()->subu()->first();
 
+
+    if (!$employee) {
+        return redirect()->back()->with('error', 'No employee record found.');
+    }
+
+    // Fetch all profile update requests for this employee
+    $requests = AccountUpdateRequest::where('employee_id', $employee->id)
+                                    ->orderBy('created_at', 'desc')
+                                    ->get();
+
+    return view('employee.request_status.account_update', compact('requests'));
+}
+
+
+
+///////profile update request //////////
+
+public function viewMyProfileStatusofEmp()
+{
+    $employee = Auth::user()->subu()->first();
+
+
+    if (!$employee) {
+        return redirect()->back()->with('error', 'No employee record found.');
+    }
+
+    // Fetch all profile update requests for this employee
+    $requests = ProfileUpdateRequest::where('employee_id', $employee->id)
+                                    ->orderBy('created_at', 'desc')
+                                    ->get();
+
+    return view('employee.request_status.profile_update', compact('requests'));
+}
 
 
 }

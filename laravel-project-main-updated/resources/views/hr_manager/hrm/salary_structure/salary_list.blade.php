@@ -38,6 +38,11 @@
                                                     class="btn btn-inverse-warning"> Edit</a>
                                                 <a href="{{ route('delete.empsalaries', $item->id) }}"
                                                     class="btn btn-inverse-danger" id="delete"> Delete</a>
+                                                {{-- <a href="{{ route('view.empsalaries', $item->id) }}"
+                                                    class="btn btn-inverse-danger"
+                                                    style="background-color: #28a745; color: white; border: 1.5px solid #155724;"
+                                                    target="_blank">
+                                                    View payslip</a> --}}
                                                 <a href="{{ route('view.empsalaries', $item->id) }}"
                                                     class="btn btn-inverse-danger"
                                                     style="background-color: #28a745; color: white; border: 1.5px solid #155724;">

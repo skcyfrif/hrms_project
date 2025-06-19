@@ -33,6 +33,7 @@
                                         <option value="salary-increment">Salary Increment</option>
                                         <option value="make-permanent">Make Permanent</option>
                                         <option value="account-details-update">Account Details Update</option>
+                                        <option value="update-profile">Update Profile</option>
                                         <option value="any-issue">Any Issue</option>
                                     </select>
                                     @error('request_type')
@@ -170,7 +171,64 @@
                                                 </div>
                                             </form>
                                         `;
+                                        } else if (type === 'update-profile') {
+                                            html = `
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label>Full Name</label>
+                                                        <input type="text" name="name" value="{{ $employee->name ?? '' }}" class="form-control">
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label>Email</label>
+                                                        <input type="email" name="email" value="{{ $employee->email ?? '' }}" class="form-control">
+                                                    </div>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label>Phone</label>
+                                                        <input type="text" name="phone_number" value="{{ $employee->phone_number ?? '' }}" class="form-control">
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label>Current Address Line 1</label>
+                                                        <input type="text" name="current_address_line1" value="{{ $employee->current_address_line1 ?? '' }}" class="form-control">
+                                                    </div>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label>Current Address Line 2</label>
+                                                        <input type="text" name="current_address_line2" value="{{ $employee->current_address_line2 ?? '' }}" class="form-control">
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label>City</label>
+                                                        <input type="text" name="current_city" value="{{ $employee->current_city ?? '' }}" class="form-control">
+                                                    </div>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label>State</label>
+                                                        <input type="text" name="current_state" value="{{ $employee->current_state ?? '' }}" class="form-control">
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label>District</label>
+                                                        <input type="text" name="current_district" value="{{ $employee->current_district ?? '' }}" class="form-control">
+                                                    </div>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label>PIN Code</label>
+                                                        <input type="text" name="current_pin" value="{{ $employee->current_pin ?? '' }}" class="form-control">
+                                                    </div>
+                                                </div>
+
+                                                <button type="submit" class="btn btn-primary mt-3">Update Profile</button>
+                                            `;
                                         }
+
+
 
 
 

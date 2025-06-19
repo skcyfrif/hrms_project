@@ -3,14 +3,15 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AgentController;
 use App\Http\Controllers\Backend\PropertyTypeController;
-use App\Http\Controllers\homefoldercontroller\HomeController;
+// use App\Http\Controllers\homefoldercontroller\HomeController;
 use App\Http\Controllers\hr\HrController;
 use App\Http\Controllers\hrManager\HrManagerController;
 use App\Http\Controllers\ReportingManager\RmController;
 use App\Http\Controllers\EmployeeController;
 // use App\Http\Controllers\subrat\SubContrller;
-use App\Http\Controllers\employee\AeController;
+// use App\Http\Controllers\employee\AeController;
 use App\Http\Controllers\Salary\SalaryController;
+use App\Http\Controllers\TerminationController;
 
 use App\Http\Controllers\Backend\RoleController;
 use App\Http\Controllers\ProfileController;
@@ -168,6 +169,22 @@ Route::controller(AdminController::class)->group(function() {
 });
 
 
+////////// request approved by admin //////////
+Route::get('/request/admin_update_request', [AdminController::class, 'UpdateProfileInfo'])->name('hrhead.profile.requests');
+Route::post('/profile-update-requests/{id}/approve', [AdminController::class, 'approve'])->name('admin.profile.approve');
+Route::post('/profile-update-requests/{id}/reject', [AdminController::class, 'reject'])->name('admin.profile.reject');
+
+
+Route::get('/request_account_update', [AdminController::class, 'accountUpdateRequests'])->name('hrhead.account.requests');
+Route::post('/account-request/{id}/approve', [AdminController::class, 'approveAccountRequest'])->name('admin.accountrequest.approve');
+Route::post('/account-request/{id}/reject', [AdminController::class, 'rejectAccountRequest'])->name('admin.accountrequest.reject');
+
+  ///////////termination letter///////////
+        Route::get('/admin/termination/create', [AdminController::class, 'createTer'])->name('terminations.create.hr');
+        Route::get('/admin/termination/index', [AdminController::class, 'indexTer'])->name('terminations.hr');
+        Route::post('/admin/termination/store', [AdminController::class, 'storeTer'])->name('terminations.store.hr');
+        Route::get('/admin/termination/letter{id}', [AdminController::class, 'terminationLetterTer'])->name('terminations.letter.hr');
+
 /////////////////////////////////////
 
         //  HR CONTROLLER
@@ -290,6 +307,13 @@ Route::controller(HrController::class)->group(function() {
         Route::get('/request/hrhead_update_request', [HrController::class, 'UpdateRequestHr'])->name('update.request.hr');
         Route::post('/submit-form/hrhead', [HrController::class, 'submitByHrHead'])->name('forms.submit');
 
+
+        ///////////termination letter///////////
+        Route::get('/termination/create', [HrController::class, 'create'])->name('terminations.create');
+        Route::get('/termination/index', [HrController::class, 'index'])->name('terminations.index');
+        Route::post('/termination/store', [HrController::class, 'store'])->name('terminations.store');
+        Route::get('/termination/letter{id}', [HrController::class, 'terminationLetter'])->name('terminations.letter');
+
 ////////////////////////////payroll////////////////////////////
 
         Route::get('/muster_roll/payroll/hr', [HrController::class, 'PayrollListOfHrm'])->name('hr.hrm.payroll');
@@ -306,8 +330,28 @@ Route::get('/payslip/hr/views', [HrController::class, 'HrPayslipView'])->name('v
     Route::get('/hr/rmattendance/report/download', [HrController::class, 'DownloadRMAttendanceReport'])->name('hr.download.rmattendance');
     Route::get('/hr/employeeattendance/report/download', [HrController::class, 'DownloadEmpLoyeeAttendanceReport'])->name('hr.download.employeeattendance');
 
+Route::get('/hrhead/my-update-requests', [HrController::class, 'viewMyProfileUpdateRequests'])->name('hr.myUpdateRequests');
+Route::get('/hrhead/my-account-update-requests', [HrController::class, 'viewMyaccountUpdateRequests'])->name('hr.myaccountUpdateRequests');
 
 
+
+
+//////////////request form of hrm/////////
+Route::get('/request/hr_update_request', [HrController::class, 'UpdateProfileOfHrm'])->name('hrm.profile.requests');
+Route::post('/hr/profile-update-requests/{id}/approve', [HrController::class, 'approveByHr'])->name('hr.profile.approve');
+Route::post('/hr/profile-update-requests/{id}/reject', [HrController::class, 'rejectByHr'])->name('hr.profile.reject');
+
+///////////account request form of hrm/////////
+Route::get('/hr/request_account_update', [HrController::class, 'accountUpdateRequestsOfHrm'])->name('hrm.account.requests');
+Route::post('/hr/account-request/{id}/approve', [HrController::class, 'approveAccountRequestByHr'])->name('hr.accountrequest.approve');
+Route::post('/hr/account-request/{id}/reject', [HrController::class, 'rejectAccountRequestByHr'])->name('hr.accountrequest.reject');
+
+
+
+// ///////////account request form of rm/////////
+// Route::get('/hrm/request_account_update', [HrManagerController::class, 'accountUpdateRequestsOfRm'])->name('rm.account.requests');
+// Route::post('/hrm/account-request/{id}/approve', [HrManagerController::class, 'approveAccountRequestByHrm'])->name('hrm.accountrequest.approve');
+// Route::post('/hrm/account-request/{id}/reject', [HrManagerController::class, 'rejectAccountRequestByHrm'])->name('hrm.accountrequest.reject');
 
 });
 Route::middleware(['auth' , 'role:manager'])->group(function(){
@@ -508,15 +552,41 @@ Route::post('/hrm/approve/permanent/{id}', [HrManagerController::class, 'updateP
 
 
 Route::get('/request/update_request', [HrManagerController::class, 'UpdateRequest'])->name('update.request');
-Route::post('/submit-form/hrm', [HrManagerController::class, 'submitByHrm'])->name('form.submits');
+Route::post('/submit-form/hrm', [HrManagerController::class, 'submitByHrm'])->name('form.hrm.submits');
 
 
+Route::get('/hrm/my-update-requests', [HrManagerController::class, 'viewMyProfileUpdate'])->name('hrm.myUpdateRequests');
+Route::get('/hrm/my-account-update-requests', [HrManagerController::class, 'viewMyaccountUpdateStatus'])->name('hrm.myaccountUpdateRequests');
+
+//////////////request form of hrm/////////
+Route::get('/request/rm_update_request', [HrManagerController::class, 'UpdateProfileOfRm'])->name('rm.profile.requests');
+Route::post('/hrm/profile-update-requests/{id}/approve', [HrManagerController::class, 'approveByHrm'])->name('hrm.profile.approve');
+Route::post('/hrm/profile-update-requests/{id}/reject', [HrManagerController::class, 'rejectByHrm'])->name('hrm.profile.reject');
+
+///////request form of hrm/////////
+Route::get('/request/employee_update_request', [HrManagerController::class, 'UpdateProfileOfEmployee'])->name('employee.profile.requests');
+///////////account request form of rm/////////
+Route::get('/hrm/request_account_update', [HrManagerController::class, 'accountUpdateRequestsOfRm'])->name('rm.account.requests');
+Route::post('/hrm/account-request/{id}/approve', [HrManagerController::class, 'approveAccountRequestByHrm'])->name('hrm.accountrequest.approve');
+Route::post('/hrm/account-request/{id}/reject', [HrManagerController::class, 'rejectAccountRequestByHrm'])->name('hrm.accountrequest.reject');
+
+///////////account request form of employee/////////
+Route::get('/hrm/employee/request_account_update', [HrManagerController::class, 'accountUpdateRequestsOfEmployee'])->name('employee.account.requests');
+// Route::post('/hrm/account-request/{id}/approve', [HrManagerController::class, 'approveAccountRequestByHrm'])->name('hrm.accountrequest.approve');
+// Route::post('/hrm/account-request/{id}/reject', [HrManagerController::class, 'rejectAccountRequestByHrm'])->name('hrm.accountrequest.reject');
 
 ///////////view payslip/////////////
 
 Route::get('/hrm/payslip', [HrManagerController::class, 'PayslipPage'])->name('hrm.payslip');
 Route::get('/payslip/hrm/views', [HrManagerController::class, 'HrmPayslipView'])->name('view.hrmpayslip');
 
+
+
+///////////termination letter///////////
+        Route::get('/hrm/termination/index', [HrManagerController::class, 'indexTerm'])->name('terminations.hrm.index');
+        Route::get('/hrm/termination/create', [HrManagerController::class, 'createTerm'])->name('terminations.create.hrm');
+        Route::post('/hrm/termination/store', [HrManagerController::class, 'storeTerm'])->name('terminations.store.hrm');
+        Route::get('/hrm/termination/letter{id}', [HrManagerController::class, 'terminationLetterTerm'])->name('terminations.letter.hrm');
 
 });
 
@@ -584,6 +654,13 @@ Route::middleware(['auth' , 'role:user'])->group(function(){
     Route::post('/submit-form', [EmployeeController::class, 'submit'])->name('form.submit');
     Route::get('/employee/request/make-permanent', [EmployeeController::class, 'showMakePermanentForm'])->name('make.permanent.form');
     // Route::get('/employee/request/make-permanent', [RequestController::class, 'showMakePermanentForm'])->name('make.permanent.form');
+
+///////account update request of employee/////////
+Route::get('/employee/account-update-requests', [EmployeeController::class, 'viewMyACcountUpdates'])->name('employeee.myaccountUpdateRequests');
+
+///////profile update request of employee/////////
+Route::get('/hrm/employee/my-update-requests', [EmployeeController::class, 'viewMyProfileStatusofEmp'])->name('employee.myUpdateRequests');
+
 
 
 
@@ -792,6 +869,15 @@ Route::post('/rmreject-leave', [RmController::class, 'rejectLeaveSubmitbyRm'])->
 
 
 Route::get('rm/employee/attendance/download', [RmController::class, 'downloadEmployeeAttendanceReports'])->name('rm.download.employeeattendance');
+
+Route::get('/request/update_request/rm', [RmController::class, 'UpdateRequestOfRm'])->name('update.request.rm');
+Route::post('/submit-form/rm', [RmController::class, 'submitByRm'])->name('form.submits');
+
+
+////////////////////request status////////////////
+Route::get('/hrm/rm/my-update-requests', [RmController::class, 'viewMyProfileStatus'])->name('rm.myUpdateRequests');
+Route::get('/hrm/rm/my-account-update-requests', [RmController::class, 'viewMyaccountUpdates'])->name('rm.myaccountUpdateRequests');
+
 
 
 
