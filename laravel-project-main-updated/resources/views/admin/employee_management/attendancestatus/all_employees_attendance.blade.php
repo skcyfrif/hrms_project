@@ -35,7 +35,18 @@
                                 </div>
                             </form>
 
+
                             @php
+                                $selectedMonth = request('month', now()->format('m'));
+                            @endphp
+                            <div class="mb-3 text-end">
+                                <a href="{{ route('admin.download.employeesattendances', ['month' => $selectedMonth]) }}"
+                                    class="btn btn-success">
+                                    Download Attendance Report
+                                </a>
+                            </div>
+
+                            {{-- @php
                                 $currentMonth = now()->format('m');
                             @endphp
 
@@ -44,7 +55,7 @@
                                     class="btn btn-success">
                                     Download Current Month Report
                                 </a>
-                            </div>
+                            </div> --}}
 
 
 

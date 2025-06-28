@@ -1,328 +1,379 @@
 @extends('hr_manager.hr_manager_dashboard')
 @section('hr_manager')
-    <div class="container-fluid">
-        <!-- Page Title -->
-        <div class="row mb-4">
-            <div class="col-md-6">
-                <h3 class="text-primary">Welcome, {{ $employee->name }}</h3>
-                <p class="text-muted">Your dashboard for the HRMS system</p>
-            </div>
-            <div class="col-md-6 text-end">
-                <button class="btn btn-warning">Edit Profile</button>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+<div class="container-fluid mt-6">
+    <!-- Header Section -->
+    <div class="row mb-4 align-items-center justify-content-between">
+        <div class="col-md-8">
+            <h2 class="text-primary mb-1">Welcome, {{ $employee->name }}</h2>
+            <p class="text-muted mb-0">HR Manager Dashboard</p>
+        </div>
+        <div class="col-md-2 text-end">
+            <div class="input-group flatpickr w-100" id="dashboardDate">
+                <span class="input-group-text bg-transparent border-primary" data-toggle>
+                    <i data-feather="calendar" class="text-primary"></i>
+                </span>
+                <input type="text" class="form-control text-black bg-transparent border-primary" placeholder="Select date" data-input>
             </div>
         </div>
-        <div class="d-flex align-items-center flex-wrap text-nowrap">
-            <div class="input-group flatpickr wd-200 me-2 mb-2 mb-md-0" id="dashboardDate">
-                <span class="input-group-text input-group-addon bg-transparent border-primary"
-                    data-toggle><i data-feather="calendar" class="text-primary"></i></span>
-                <input type="text" class="form-control bg-transparent border-primary text-white"
-                    placeholder="Select date" data-input>
-            </div>
-        </div>
-        <!-- Dashboard Info Row -->
-        <div class="row">
-            <!-- Profile Info -->
-            <div class="col-md-4 mb-4">
-                <div class="card shadow-sm bg-light">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">Profile Information</h5>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-group list-group-flush">
-                            <li class="list-group-item"><strong>Name:</strong> {{ $employee->name }}</li>
-                            <li class="list-group-item"><strong>Email:</strong> {{ $employee->email }}</li>
-                            <li class="list-group-item"><strong>Department:</strong> {{ $employee->department }}</li>
-                            <li class="list-group-item"><strong>Designation:</strong> {{ $employee->designation }}</li>
-                        </ul>
+    </div>
 
-                    </div>
-                </div>
-            </div>
-
-            <!-- Leave Balance -->
-            <div class="col-md-4 mb-4">
-                <div class="card shadow-sm bg-light">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">Leave Balance</h5>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-group list-group-flush">
-                            <li class="list-group-item"><strong>Available PL:</strong>
-                                {{ $leaveBalanceData->pl_balance ?? 0 }}</li>
-                            <li class="list-group-item"><strong>Available SL:</strong>
-                                {{ $leaveBalanceData->sl_balance ?? 0 }}</li>
-                            <li class="list-group-item"><strong>Taken LOP:</strong> {{ $leaveBalanceData->lop_days ?? 0 }}
-                            </li>
-
-                            {{-- <li class="list-group-item"><strong>Designation:</strong> {{ $employee->designation }}</li> --}}
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Attendance -->
-            <div class="col-md-4 mb-4">
-                <div class="card shadow-sm bg-light">
-                    <div class="card-header bg-info text-white">
-                        <h5 class="mb-0">Attendance</h5>
-                    </div>
-                    <div class="card-body">
-                        @if ($attendance && $attendance->check_in_time)
-                            <p><strong>Last Check-In:</strong> {{ $attendance->check_in_time->format('Y-m-d H:i:s') }}</p>
-                        @else
-                            <p>No check-in recorded today.</p>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Team Members Section -->
-        <div class="row mb-4">
-            <div class="col-md-6">
-                <div class="card shadow-sm bg-light">
-                    <div class="card-header bg-warning text-white">
-
-                        <a href="{{ route('employee.list') }}" class="btn btn-primary">My Team Members
-                            ({{ $totalMembers }})</a>
-                        {{-- <a href="#" class="btn btn-primary">My Team Members </a> --}}
-                    </div>
-                    <div class="card-body">
-
-                        <div class="text-center mt-3">
-
+    <!-- Quick Stats Row -->
+    <div class="row mb-4">
+        <!-- Profile Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Employee Profile</div>
+                            <div class="h6 mb-0 text-gray-800">
+                                <div><i class="fas fa-user me-2"></i>{{ $employee->name }}</div>
+                                <div><i class="fas fa-building me-2"></i>{{ $employee->department }}</div>
+                                <div><i class="fas fa-briefcase me-2"></i>{{ $employee->designation }}</div>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-tie fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="card shadow-sm bg-light">
-                    <div class="card-header bg-danger text-white">
+        </div>
 
-                        <a href="{{ route('hrm.rm.attendance', ['date' => now()->toDateString()]) }}"
-                            class="btn btn-primary">
-                            Attendance Snapshot of Report Managers ({{ $presentCount }})
-                        </a>
-                        <a href="{{ route('hrm.employee.attendance', ['date' => now()->toDateString()]) }}"
-                            class="btn btn-primary">
-                            Attendance Snapshot of Employees ({{ $presentCount }})
-                        </a>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-group">
-
-                        </ul>
+        <!-- Leave Balance Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Leave Balance</div>
+                            <div class="h6 mb-0 text-gray-800">
+                                <div><i class="fas fa-sun me-2"></i>PL: {{ $leaveBalanceData->pl_balance ?? 0 }}</div>
+                                <div><i class="fas fa-procedures me-2"></i>SL: {{ $leaveBalanceData->sl_balance ?? 0 }}</div>
+                                <div><i class="fas fa-exclamation-triangle me-2"></i>LOP: {{ $leaveBalanceData->lop_days ?? 0 }}</div>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar-alt fa-2x text-gray-300"></i>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="row mb-4">
-            <div class="col-md-6">
-                <div class="card shadow-sm bg-light">
-                    <div class="card-header bg-danger text-white">
-                        <a href="{{ route('approval.status') }}" class="btn btn-primary">
-                            Quick access to approve/reject leave requests ({{ $pendingLeaveCountemplyee }})
-                        </a>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-group">
-                            Employees
-                        </ul>
-
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card shadow-sm bg-light">
-                    <div class="card-header bg-danger text-white">
-                        <a href="{{ route('approval.rmstatus') }}" class="btn btn-primary">
-                            Quick access to approve/reject leave requests ({{ $pendingLeaveCountreportmanager }})
-                        </a>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-group">
-                            Reporting Managers
-                        </ul>
-
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="row mb-4">
-
-            <div class="col-md-6">
-                <div class="card shadow-sm bg-light">
-                    <div class="card-header bg-danger text-white">
-                        <a href="{{ route('claimapproval.status') }}" class="btn btn-primary">
-                            Quick access to approve/reject Claim requests ({{ $pendingClaimCount }})
-                        </a>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-group">
-                            Employess
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card shadow-sm bg-light">
-                    <div class="card-header bg-danger text-white">
-                        <a href="{{ route('rmclaimapproval.status') }}" class="btn btn-primary">
-                            Quick access to approve/reject Claim requests ({{ $pendingClaimCountrm }})
-                        </a>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-group">
-                            Reporting Managers
-                        </ul>
+        <!-- Attendance Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Today's Attendance</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                @if ($attendance && $attendance->check_in_time)
+                                    <span class="text-success"><i class="fas fa-check-circle me-2"></i>Checked In</span>
+                                    <div class="text-muted small mt-1">{{ $attendance->check_in_time->format('h:i A') }}</div>
+                                @else
+                                    <span class="text-danger"><i class="fas fa-times-circle me-2"></i>Not Recorded</span>
+                                @endif
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-
-        <!-- Recruitment & Hiring -->
-        <div class="row mb-4">
-            <div class="col-md-4">
-                <div class="card shadow-sm bg-light">
-                    <div class="card-header bg-danger text-white">
-                        {{-- <h5 class="mb-0">Applicant in pipeline</h5> --}}
-                        <a href="{{ route('candidate.list') }}" class="btn btn-primary">
-                            Applicant in pipeline ({{ $candidateCount }})
-                        </a>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-group">
-
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card shadow-sm bg-light">
-                    <div class="card-header bg-danger text-white">
-                        {{-- <h5 class="mb-0">Interview Scheduled</h5> --}}
-                        <a href="{{ route('interview.list') }}" class="btn btn-primary">
-                            Interview Scheduled  ({{ $sheduledcandidateCount }})
-                        </a>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-group">
-                            {{-- @forelse($holidays as $holiday)
-                            <li class="list-group-item">{{ $holiday->name }} - {{ $holiday->date->format('Y-m-d') }}</li>
-                        @empty
-                            <li class="list-group-item">No upcoming holidays.</li>
-                        @endforelse --}}
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card shadow-sm bg-light">
-                    <div class="card-header bg-danger text-white">
-                        <h5 class="mb-0">Offer Letter Sent</h5>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-group">
-                            {{-- @forelse($holidays as $holiday)
-                            <li class="list-group-item">{{ $holiday->name }} - {{ $holiday->date->format('Y-m-d') }}</li>
-                        @empty
-                            <li class="list-group-item">No upcoming holidays.</li>
-                        @endforelse --}}
-                        </ul>
+        <!-- Team Members Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Team Members</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalMembers }}</div>
+                            <a href="{{ route('employee.list') }}" class="btn btn-sm btn-primary mt-2">
+                                <i class="fas fa-users me-1"></i> View Team
+                            </a>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-
-        <!-- Upcoming Holidays -->
-        <div class="row mb-4">
-            <div class="col-md-12">
-                <div class="card shadow-sm bg-light">
-                    <div class="card-header bg-danger text-white">
-                        <h5 class="mb-0">Upcoming Holidays</h5>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-group">
-                            {{-- @forelse($holidays as $holiday)
-                            <li class="list-group-item">{{ $holiday->name }} - {{ $holiday->date->format('Y-m-d') }}</li>
-                        @empty
-                            <li class="list-group-item">No upcoming holidays.</li>
-                        @endforelse --}}
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Notifications -->
-        <div class="row">
-            <div class="col-md-12">
-                <div class="card shadow-sm bg-light">
-                    <div class="card-header bg-warning text-white">
-                        <h5 class="mb-0">Recent Notifications</h5>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-group">
-                            {{-- @forelse($notifications as $notification)
-                            <li class="list-group-item">{{ $notification->message }} - {{ $notification->created_at->format('Y-m-d H:i:s') }}</li>
-                        @empty
-                            <li class="list-group-item">No recent notifications.</li>
-                        @endforelse --}}
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <br>
-        <br>
-        <br>
-        <br>
-        <br>
-        <br>
-        <br>
-        <br>
-        <br>
-        <br>
     </div>
-@endsection
 
-@section('styles')
-    <style>
-        /* Additional Custom Styling */
-        .card-header {
-            font-weight: bold;
-        }
+    <!-- Approval Section -->
+    <div class="row mb-4">
+        <!-- Leave Approvals -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold"><i class="fas fa-calendar-check me-2"></i>Leave Approvals</h6>
+                    <span class="badge bg-light text-dark">{{ $pendingLeaveCountemplyee + $pendingLeaveCountreportmanager }}</span>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="border p-3 rounded">
+                                <h6 class="text-center mb-3">Employees</h6>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-muted">Pending Requests</span>
+                                    <span class="badge bg-danger">{{ $pendingLeaveCountemplyee }}</span>
+                                </div>
+                                <a href="{{ route('approval.status') }}" class="btn btn-sm btn-primary w-100 mt-2">
+                                    <i class="fas fa-tasks me-1"></i> Manage
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="border p-3 rounded">
+                                <h6 class="text-center mb-3">Reporting Managers</h6>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-muted">Pending Requests</span>
+                                    <span class="badge bg-danger">{{ $pendingLeaveCountreportmanager }}</span>
+                                </div>
+                                <a href="{{ route('approval.rmstatus') }}" class="btn btn-sm btn-primary w-100 mt-2">
+                                    <i class="fas fa-tasks me-1"></i> Manage
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        .btn-warning {
-            background-color: #FFC107;
-            /* Yellow */
-            border-color: #FFC107;
-        }
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold"><i class="fas fa-file-invoice-dollar me-2"></i>Claim Approvals</h6>
+                    <span class="badge bg-light text-dark">{{ $pendingClaimCount + $pendingClaimCountrm }}</span>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="border p-3 rounded">
+                                <h6 class="text-center mb-3">Employees</h6>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-muted">Pending Requests</span>
+                                    <span class="badge bg-danger">{{ $pendingClaimCount }}</span>
+                                </div>
+                                <a href="{{ route('claimapproval.status') }}" class="btn btn-sm btn-success w-100 mt-2">
+                                    <i class="fas fa-tasks me-1"></i> Manage
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="border p-3 rounded">
+                                <h6 class="text-center mb-3">Reporting Managers</h6>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-muted">Pending Requests</span>
+                                    <span class="badge bg-danger">{{ $pendingClaimCountrm }}</span>
+                                </div>
+                                <a href="{{ route('rmclaimapproval.status') }}" class="btn btn-sm btn-success w-100 mt-2">
+                                    <i class="fas fa-tasks me-1"></i> Manage
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        .btn-warning:hover {
-            background-color: #FF9800;
-            /* Darker Yellow */
-            border-color: #FF9800;
-        }
+    <!-- Attendance & Recruitment Section -->
+    <div class="row mb-4">
+        <!-- Attendance Snapshot -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold"><i class="fas fa-clipboard-list me-2"></i>Attendance Snapshots</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <a href="{{ route('hrm.rm.attendance', ['date' => now()->toDateString()]) }}"
+                               class="btn btn-info w-100 d-flex flex-column align-items-center p-3">
+                                <i class="fas fa-user-tie fa-2x mb-2"></i>
+                                <span>Reporting Managers</span>
+                                <span class="badge bg-light text-dark mt-1">{{ $presentCount }}</span>
+                            </a>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <a href="{{ route('hrm.employee.attendance', ['date' => now()->toDateString()]) }}"
+                               class="btn btn-info w-100 d-flex flex-column align-items-center p-3">
+                                <i class="fas fa-users fa-2x mb-2"></i>
+                                <span>Employees</span>
+                                <span class="badge bg-light text-dark mt-1">{{ $presentCount }}</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        .list-group-item {
-            background-color: #f9f9f9;
-            /* Light gray for better readability */
-        }
+        <!-- Recruitment Pipeline -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-purple text-white d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold"><i class="fas fa-user-plus me-2"></i>Recruitment Pipeline</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <a href="{{ route('candidate.list') }}"
+                               class="btn btn-purple w-100 d-flex flex-column Recruitment_card_one align-items-center p-3">
+                                <i class="fas fa-user-clock fa-2x mb-2"></i>
+                                <span>Applicants</span>
+                                <span class="badge bg-light text-dark mt-1">{{ $candidateCount }}</span>
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a href="{{ route('interview.list') }}"
+                               class="btn btn-purple w-100 d-flex flex-column Recruitment_card_two align-items-center p-3">
+                                <i class="fas fa-calendar-alt fa-2x mb-2"></i>
+                                <span>Interviews</span>
+                                <span class="badge bg-light text-dark mt-1">{{ $sheduledcandidateCount }}</span>
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a href="#" class="btn btn-purple w-100 d-flex flex-column Recruitment_card_three align-items-center p-3">
+                                <i class="fas fa-envelope-open-text fa-2x mb-2"></i>
+                                <span>Offers</span>
+                                <span class="badge bg-light text-dark mt-1">0</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        .list-group-item strong {
-            color: #007bff;
-            /* Blue color for labels */
-        }
+    <!-- Bottom Section -->
+    <div class="row">
+        <!-- Upcoming Holidays -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-white">
+                    <h6 class="m-0 font-weight-bold"><i class="fas fa-umbrella-beach me-2"></i>Upcoming Holidays</h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center py-4">
+                        <i class="fas fa-calendar-day fa-3x text-warning mb-3"></i>
+                        <p class="text-muted">No upcoming holidays in the next 30 days</p>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        .card-body {
-            padding: 20px;
-        }
+        <!-- Recent Notifications -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h6 class="m-0 font-weight-bold"><i class="fas fa-bell me-2"></i>Recent Notifications</h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center py-4">
+                        <i class="fas fa-bell-slash fa-3x text-danger mb-3"></i>
+                        <p class="text-muted">No new notifications</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-        .container-fluid {
-            padding: 30px;
-        }
-    </style>
+
+<style>
+    :root {
+        --purple: #6f42c1;
+    }
+
+    .bg-purple {
+        background-color: var(--purple) !important;
+    }
+
+    .btn-purple {
+        background-color: var(--purple);
+        border-color: var(--purple);
+        color: white;
+    }
+
+    .btn-purple:hover {
+        background-color: #5a32a3;
+        border-color: #5a32a3;
+        color: white;
+    }
+
+    .card {
+        border: none;
+        border-radius: 0.5rem;
+    }
+
+    .card-header {
+        border-radius: 0.5rem 0.5rem 0 0 !important;
+        padding: 1rem 1.25rem;
+    }
+
+    .border-left-primary {
+        border-left: 0.25rem solid #4e73df !important;
+    }
+
+    .border-left-success {
+        border-left: 0.25rem solid #1cc88a !important;
+    }
+
+    .border-left-info {
+        border-left: 0.25rem solid #36b9cc !important;
+    }
+
+    .border-left-warning {
+        border-left: 0.25rem solid #f6c23e !important;
+    }
+
+    .shadow-sm {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+    }
+
+    .h-100 {
+        height: 100% !important;
+    }
+
+    .text-xs {
+        font-size: 0.7rem;
+    }
+
+    .badge {
+        font-size: 0.75em;
+        font-weight: 600;
+        padding: 0.35em 0.65em;
+    }
+
+    .flatpickr-input {
+        background: white !important;
+    }
+    .Recruitment_card_three {
+        background-color: #66d1d1;
+
+    }
+    .Recruitment_card_one {
+        background-color: #FF5733;
+    }
+    .Recruitment_card_two {
+        background-color: #05a34a;
+    }
+</style>
+
+
 @endsection

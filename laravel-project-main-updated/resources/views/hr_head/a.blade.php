@@ -68,7 +68,7 @@
                                 </div>
                                 <div class="detail-item">
                                     <span class="detail-label">Role:</span>
-                                    <span class="detail-value badge bg-admin">{{ $employee->user_role }}</span>
+                                    <span class="detail-value badge bg-admin">{{ $employee->role }}</span>
                                 </div>
                             </div>
                         </div>
@@ -84,7 +84,7 @@
                 <div class="row quick-stats-row">
 
 
-                    <div class="col-md-6 col-6 mb-4">
+                    <div class="col-md-3 col-6 mb-4">
                         <div class="quick-stat-card hr-heads">
                             <div class="stat-icon">
                                 <i class="fas fa-user-tie"></i>
@@ -101,7 +101,23 @@
                         </div>
                     </div>
 
-                    <div class="col-md-6 col-6 mb-4">
+                    <div class="col-md-3 col-6 mb-4">
+                        <div class="quick-stat-card total-employees">
+                            <div class="stat-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-info">
+
+                                <h6>My Team Members</h6>
+                                <h3>({{ $totalMembers }})</h3>
+                                <a href="{{ route('hrmanager.list') }}" class="stat-link">View All <i
+                                        class="fas fa-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="col-md-3 col-6 mb-4">
                         <div class="quick-stat-card hr-managers">
                             <div class="stat-icon">
                                 <i class="fas fa-user-cog"></i>
@@ -118,11 +134,6 @@
                         </div>
                     </div>
 
-
-
-
-
-
                 </div>
             </div>
         </div>
@@ -130,59 +141,22 @@
 
 
         <div class="row action-cards-row mb-4">
-            <div class="col-lg-6 mb-4">
-                <div class="card shadow attendance_snapshot_card">
-                    <div class="align-items-center">
-                        <h6 class="m-0 font-weight-bold"><i class="fas fa-user-plus me-2"></i>Attendance Snapshot</h6>
+            <div class="col-md-4 mb-4">
+                <div class="action-card attendance-card">
+                    <div class="card-icon">
+                        <i class="fas fa-clipboard-check"></i>
                     </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <a href="{{ route('hr_head.hr_managerattendances') }}"
-                                    class="btn btn-purple w-100 d-flex flex-column Recruitment_card_one align-items-center p-3">
-                                    <i class="fas fa-user-clock fa-2x mb-2"></i>
-                                    <span>Hr Managers</span>
-                                    <span class="badge bg-light text-dark mt-1"></span>
-                                    {{-- <span class="badge bg-light text-dark mt-1">{{ $candidateCount }}</span> --}}
-                                </a>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <a href="{{ route('hr_head.rmattendances') }}"
-                                    class="btn btn-purple w-100 d-flex flex-column Recruitment_card_two align-items-center p-3">
-                                    <i class="fas fa-calendar-alt fa-2x mb-2"></i>
-                                    <span>Reporting Managers</span>
-                                    <span class="badge bg-light text-dark mt-1"></span>
-                                    {{-- <span class="badge bg-light text-dark mt-1">{{ $sheduledcandidateCount }}</span> --}}
-                                </a>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <a href="{{ route('hrhead.employee.attendances') }}"
-                                    class="btn btn-purple w-100 d-flex flex-column Recruitment_card_three align-items-center p-3">
-                                    <i class="fas fa-envelope-open-text fa-2x mb-2"></i>
-                                    <span>Employees</span>
-                                    {{-- <span class="badge bg-light text-dark mt-1">0</span> --}}
-                                </a>
-                            </div>
-                        </div>
+                    <div class="card-content">
+                        <h4>Attendance Snapshot</h4>
+                        <p>View and manage employee attendance records</p>
+                        <a href="{{ route('hr_head.hr_managerattendances', ['date' => now()->toDateString()]) }}"
+                            class="btn-action">
+                            Manage AttendanceView ({{ $presentCount }}) <i class="fas fa-arrow-right"></i>
+                        </a>
                     </div>
                 </div>
             </div>
-
-            <div class="col-md-6 col-6 mb-4">
-                <div class="quick-stat-card total-employees">
-                    <div class="stat-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <div class="stat-info">
-
-                        <h6>My Team Members</h6>
-                        <h3>({{ $totalMembers }})</h3>
-                        <a href="{{ route('hrmanager.list') }}" class="stat-link">View All <i
-                                class="fas fa-arrow-right"></i></a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 mb-4">
+            <div class="col-md-4 mb-4">
                 <div class="action-card leave-card">
                     <div class="card-icon">
                         <i class="fas fa-calendar-times"></i>
@@ -196,7 +170,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-6 mb-4">
+            <div class="col-md-4 mb-4">
                 <div class="action-card claim-card">
                     <div class="card-icon">
                         <i class="fas fa-file-invoice-dollar"></i>
@@ -354,7 +328,7 @@
 
         .detail-label {
             display: inline-block;
-            width: 35%;
+            width: 60px;
             color: #7f8c8d;
             font-weight: 500;
         }
@@ -684,44 +658,6 @@
         .btn-edit-profile:hover {
             background-color: #27ae60;
             color: white;
-        }
-
-        .attendance_snapshot_card {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            height: 100%;
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.3s ease;
-
-        }
-
-        .attendance_snapshot_card::before {
-            content: '';
-            position: absolute;
-            top: -11px;
-            left: 0;
-            width: 100%;
-            height: 9%;
-               background: linear-gradient(to bottom, #f39c12, #d35400);
-
-        }
-
-        .Recruitment_card_one {
-            background-color: #2980b9;
-            color: white;
-        }
-        .Recruitment_card_two {
-             background-color: #27ae60;
-            color: white;
-
-        }
-        .Recruitment_card_three {
-             background-color: #800080;
-            color: white;
-
         }
 
         /* Responsive Adjustments */

@@ -44,8 +44,7 @@
                             </form>
 
 
-
-                            @php
+                            {{-- @php
                                 $managerId = request('manager_id');
                                 $selectedMon = request('month');
                             @endphp
@@ -60,9 +59,27 @@
                                         Download Report
                                     </button>
                                 </form>
+                            </div> --}}
+
+
+
+                            @php
+                                $managerId = request('manager_id');
+                                $selectedMon = request('month');
+                            @endphp
+
+                            <div class="mb-3 text-end">
+                                <form method="GET" action="{{ route('hr.download.rmattendance') }}"
+                                    style="display:inline;">
+                                    <input type="hidden" name="manager_id" value="{{ $managerId }}">
+                                    <input type="hidden" name="month" value="{{ $selectedMon }}">
+
+                                    <button type="submit" class="btn btn-success"
+                                        @if (empty($managerId) || empty($selectedMon)) disabled @endif>
+                                        Download Report
+                                    </button>
+                                </form>
                             </div>
-
-
 
 
                             <table id="dataTableExample" class="table">

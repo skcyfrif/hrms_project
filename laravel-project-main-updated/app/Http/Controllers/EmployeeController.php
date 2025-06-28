@@ -87,6 +87,7 @@ class EmployeeController extends Controller
             }
         }
 
+
         // Return the data to the view
         return view('employee.my_dashboard', compact('employee', 'attendance', 'attendanceData', 'leaveBalance', 'reportingManager', 'leaveBalanceData'));
     }

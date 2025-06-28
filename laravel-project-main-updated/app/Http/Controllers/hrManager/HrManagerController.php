@@ -52,6 +52,16 @@ class HrManagerController extends Controller
     $attendance = $employee->attendances()->latest()->first();
     $totalMembers = Subu::where('created_by', $user->id)->count();
 
+
+ // Get today’s attendance for the logged-in HR Head
+            $today = Carbon::today()->toDateString();
+            $attendances = Employeeattendance::where('employee_id', $employee->id)
+                            ->whereDate('date', $today)
+                            ->first();
+
+
+
+
     // Get today's attendance count
     $today = Carbon::today()->toDateString();
     $presentCount = Employeeattendance::whereDate('date', $today)
@@ -83,7 +93,7 @@ class HrManagerController extends Controller
         $query->where('user_role', 'reportmanager'); // or 'rm' based on your role naming
     })->count();
     // Interview
-    return view('hr_manager.my_dashboard', compact('employee', 'attendance', 'leaveBalanceData', 'totalMembers', 'presentCount', 'candidateCount', 'sheduledcandidateCount', 'pendingClaimCount', 'pendingClaimCountrm', 'pendingLeaveCountemplyee', 'pendingLeaveCountreportmanager'));
+    return view('hr_manager.my_dashboard', compact('employee', 'attendances', 'attendance', 'leaveBalanceData', 'totalMembers', 'presentCount', 'candidateCount', 'sheduledcandidateCount', 'pendingClaimCount', 'pendingClaimCountrm', 'pendingLeaveCountemplyee', 'pendingLeaveCountreportmanager'));
 }
 
 
@@ -992,11 +1002,176 @@ $month = $request->input('month', now()->format('m')); // default to current mon
     }
 
 
-
-
-
     return view('hr_manager.hrm.attendance_status_of_all_employees.rm_attendance_status', compact('hrmanagers', 'month'));
 }
+
+
+
+public function downloadRmAttendanceReport(Request $request)
+{
+    $month     = $request->query('month', now()->format('m'));
+    $year      = now()->year;
+    $managerId = auth()->id();
+
+    // Fetch all your report‑managers
+    $heads = Subu::where('user_role','reportmanager')
+        ->where('created_by',$managerId)
+        ->get();
+
+    // Prepare CSV response
+    // $fileName = "rm_attendance_{$month}_{$year}.csv";
+
+// ✅ Updated filename
+    $monthName = \Carbon\Carbon::createFromDate($year, $month, 1)->format('F');
+    $fileName = "{$monthName}_Attendance_Report_All_ReportingManagers-{$year}.csv";
+
+    $headers  = [
+        'Content-Type'        => 'text/csv',
+        'Content-Disposition' => "attachment; filename={$fileName}",
+    ];
+
+    // $callback = function() use($heads, $month, $year) {
+    //     $out = fopen('php://output','w');
+    //     fputcsv($out, ['Date','Emp ID','Name','Status','Check-in','System Time']);
+
+    //     foreach ($heads as $head) {
+    //         // key existing attendances by date
+    //         $att = $head->attendance()
+    //             ->whereYear('date',$year)
+    //             ->whereMonth('date',$month)
+    //             ->get()->keyBy->date;
+
+    //         // get approved‑leave spans
+    //         $leaves = Leave::where('employee_id',$head->id)
+    //             ->where('m_status','mapprove')
+    //             ->whereYear('leave_from',$year)
+    //             ->whereMonth('leave_from','<=',(int)$month)
+    //             ->whereMonth('leave_to','>=',(int)$month)
+    //             ->get();
+
+    //         // iterate each day
+    //         $days = now()->setMonth((int)$month)->daysInMonth;
+    //         for ($d=1; $d<=$days; $d++) {
+    //             $date = now()->setDate($year,(int)$month,$d)->format('Y-m-d');
+    //             $row  = $att[$date] ?? null;
+
+    //             if (!$row) {
+    //                 // if on approved leave, show placeholder
+    //                 if ($leaves->first(fn($l)=> $date>=$l->leave_from && $date<=$l->leave_to)) {
+    //                     $row = (object)[
+    //                         'date'=>$date,'status'=>'On Leave',
+    //                         'check_in_time'=>null,'created_at'=>null
+    //                     ];
+    //                 }
+    //             }
+
+    //             if ($row) {
+    //                 fputcsv($out, [
+    //                     \Carbon\Carbon::parse($row->date)->format('d/M/Y'),
+    //                     $head->employee_id,
+    //                     $head->name,
+    //                     $row->status ?? 'Present',
+    //                     $row->check_in_time
+    //                         ? \Carbon\Carbon::parse($row->check_in_time)->format('h:i A')
+    //                         : '---',
+    //                     $row->created_at
+    //                         ? \Carbon\Carbon::parse($row->created_at)->format('H:i')
+    //                         : '---',
+    //                 ]);
+    //             }
+    //         }
+    //     }
+
+    //     fclose($out);
+    // };
+
+    // return response()->stream($callback, 200, $headers);
+    $callback = function() use ($heads, $month, $year, $monthName) {
+        $out = fopen('php://output', 'w');
+
+        // ✅ Custom header row with user name, title, and month
+        $loggedInUser = auth()->user()->name ?? 'Unknown';
+        $reportHeader = [
+            "Name: {$loggedInUser}",
+            '',
+            '',
+            "month: {$monthName} {$year}"
+        ];
+        fputcsv($out, $reportHeader);
+
+        // ✅ Blank line for spacing
+        fputcsv($out, []);
+
+        // ✅ Column headers
+        fputcsv($out, ['Date', 'Emp ID', 'Name', 'Status', 'Check-in', 'System Time']);
+
+        foreach ($heads as $head) {
+            // key existing attendances by date
+            $att = $head->attendance()
+                ->whereYear('date', $year)
+                ->whereMonth('date', $month)
+                ->get()
+                ->keyBy('date');
+
+            // get approved leaves
+            $leaves = Leave::where('employee_id', $head->id)
+                ->where('m_status', 'mapprove')
+                ->whereYear('leave_from', $year)
+                ->whereMonth('leave_from', '<=', (int)$month)
+                ->whereMonth('leave_to', '>=', (int)$month)
+                ->get();
+
+            // Loop through all days of the month
+            $days = now()->setDate($year, (int)$month, 1)->daysInMonth;
+
+            for ($d = 1; $d <= $days; $d++) {
+                $date = now()->setDate($year, (int)$month, $d)->format('Y-m-d');
+                $row  = $att[$date] ?? null;
+
+                // If no attendance, check if on leave
+                if (!$row) {
+                    $onLeave = $leaves->first(fn($l) =>
+                        $date >= \Carbon\Carbon::parse($l->leave_from)->format('Y-m-d') &&
+                        $date <= \Carbon\Carbon::parse($l->leave_to)->format('Y-m-d')
+                    );
+
+                    if ($onLeave) {
+                        $row = (object)[
+                            'date'          => $date,
+                            'status'        => 'On Leave',
+                            'check_in_time' => null,
+                            'created_at'    => null
+                        ];
+                    }
+                }
+
+                if ($row) {
+                    fputcsv($out, [
+                        \Carbon\Carbon::parse($row->date)->format('d/M/Y'),
+                        $head->employee_id,
+                        $head->name,
+                        $row->status ?? 'Present',
+                        $row->check_in_time
+                            ? \Carbon\Carbon::parse($row->check_in_time)->format('h:i A')
+                            : '---',
+                        $row->created_at
+                            ? \Carbon\Carbon::parse($row->created_at)->format('H:i')
+                            : '---',
+                    ]);
+                }
+            }
+        }
+
+        fclose($out);
+    };
+
+    return response()->stream($callback, 200, $headers);
+
+}
+
+
+
+
 
 public function viewEmployeeAttendances(Request $request)
 {
@@ -1069,34 +1244,6 @@ public function viewEmployeeAttendances(Request $request)
     return view('hr_manager.hrm.attendance_status_of_all_employees.employee_attendance_status', compact('hrmanagers', 'month'));
 }
 
-
-
-
-
-
-
-    public function approveAttendance($id)
-    {
-        $attendance = Employeeattendance::findOrFail($id);
-        $attendance->manager_approval_status = 'Present';
-        $attendance->approve_by_manager = auth()->user()->id;
-        $attendance->save();
-
-        return redirect()->back()->with('success', 'Attendance marked as Present.');
-    }
-
-    public function absentAttendance($id)
-    {
-        $attendance = Employeeattendance::findOrFail($id);
-        $attendance->manager_approval_status = 'Absent';
-        $attendance->approve_by_manager = auth()->user()->id;
-        $attendance->save();
-
-        return redirect()->back()->with('success', 'Attendance marked as Absent.');
-    }
-
-
-
 public function downloadEmployeeAttendanceReport(Request $request)
 {
     $month     = $request->query('month', now()->format('m'));
@@ -1156,7 +1303,10 @@ public function downloadEmployeeAttendanceReport(Request $request)
     }
 
     // Prepare CSV download
-    $fileName = "attendance_{$month}_{$year}.csv";
+    $monthName = \Carbon\Carbon::createFromDate($year, $month, 1)->format('F');
+    $fileName = "{$monthName}_Attendances_Report_AllEmployees-{$year}.csv";
+
+
     $headers  = [
         "Content-Type"        => "text/csv",
         "Content-Disposition" => "attachment; filename={$fileName}",
@@ -1165,212 +1315,84 @@ public function downloadEmployeeAttendanceReport(Request $request)
         "Expires"             => "0",
     ];
 
-    $callback = function() use($hrmanagers) {
-        $out = fopen('php://output', 'w');
-        // column headers
-        fputcsv($out, ['Date','Employee ID','Name','Status','Check-in','System Time']);
-
-        foreach ($hrmanagers as $head) {
-            foreach ($head->filteredAttendances as $a) {
-                // Mirror exactly what your Blade shows:
-                $date   = \Carbon\Carbon::parse($a->date)->format('d/M/Y');
-                $eid    = $head->employee_id;
-                $name   = $head->name;
-                // Use the stored status directly (or default to “Present”)
-                $status = $a->status ?: 'Present';
-                $cin    = $a->check_in_time
-                            ? \Carbon\Carbon::parse($a->check_in_time)->format('h:i A')
-                            : '---';
-                $sys    = $a->created_at
-                            ? \Carbon\Carbon::parse($a->created_at)->format('H:i')
-                            : '---';
-
-                fputcsv($out, [$date, $eid, $name, $status, $cin, $sys]);
-            }
-        }
-
-        fclose($out);
-        flush();
-    };
-
-    return response()->stream($callback, 200, $headers);
-}
 
 
+$callback = function () use ($hrmanagers, $monthName, $year) {
+    $out = fopen('php://output', 'w');
 
-// public function downloadRmAttendanceReport(Request $request)
-// {
-//     $month     = $request->query('month', now()->format('m'));
-//     $year      = now()->year;
-//     $managerId = auth()->id();
+    // ✅ First row: Custom Report Header
+    $loggedInName = auth()->user()->name ?? 'Unknown User';
+    $headerText = [
+        "Name: {$loggedInName}",
+        '',
 
-//     // Rebuild exactly the same $hrmanagers and their filteredAttendances:
-//     $hrmanagers = Subu::where('user_role', 'reportmanager')
-//         ->where('created_by', $managerId)
-//         ->get();
-
-//     foreach ($hrmanagers as $employee) {
-//         // 1) Pull real attendance rows
-//         $attendances = $employee->attendance()
-//             ->whereYear('date', $year)
-//             ->whereMonth('date', $month)
-//             ->get()
-//             ->keyBy('date');
-
-//         // 2) Pull approved leaves
-//         $leaves = Leave::where('employee_id', $employee->id)
-//             ->where('m_status', 'mapprove')
-//             ->whereYear('leave_from', $year)
-//             ->whereMonth('leave_from', '<=', (int)$month)
-//             ->whereMonth('leave_to',   '>=', (int)$month)
-//             ->get();
-
-//         // 3) Build a record for every day of the month
-//         $records     = collect();
-//         $daysInMonth = now()->setMonth((int)$month)->daysInMonth;
-
-//         for ($d = 1; $d <= $daysInMonth; $d++) {
-//             $date = now()->setDate($year, (int)$month, $d)->format('Y-m-d');
-
-//             if (isset($attendances[$date])) {
-//                 // real attendance row
-//                 $records->push($attendances[$date]);
-//             } else {
-//                 // maybe an approved-leave placeholder
-//                 $onLeave = $leaves->first(fn($l) => $date >= $l->leave_from && $date <= $l->leave_to);
-//                 if ($onLeave) {
-//                     $records->push((object)[
-//                         'date'                   => $date,
-//                         'status'                 => 'On Leave',
-//                         'check_in_time'          => null,
-//                         'created_at'             => null,
-//                         'manager_approval_status'=> 'leave approved',
-//                         'id'                     => null,
-//                     ]);
-//                 }
-//             }
-//         }
-
-//         $employee->filteredAttendances = $records->sortBy('date')->values();
-//     }
-
-//     // Prepare CSV download
-//     $fileName = "attendance_{$month}_{$year}.csv";
-//     $headers  = [
-//         "Content-Type"        => "text/csv",
-//         "Content-Disposition" => "attachment; filename={$fileName}",
-//         "Pragma"              => "no-cache",
-//         "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
-//         "Expires"             => "0",
-//     ];
-
-//     $callback = function() use($hrmanagers) {
-//         $out = fopen('php://output', 'w');
-//         // column headers
-//         fputcsv($out, ['Date','Employee ID','Name','Status','Check-in','System Time']);
-
-//         foreach ($hrmanagers as $head) {
-//             foreach ($head->filteredAttendances as $a) {
-//                 // Mirror exactly what your Blade shows:
-//                 $date   = \Carbon\Carbon::parse($a->date)->format('d/M/Y');
-//                 $eid    = $head->employee_id;
-//                 $name   = $head->name;
-//                 // Use the stored status directly (or default to “Present”)
-//                 $status = $a->status ?: 'Present';
-//                 $cin    = $a->check_in_time
-//                             ? \Carbon\Carbon::parse($a->check_in_time)->format('h:i A')
-//                             : '---';
-//                 $sys    = $a->created_at
-//                             ? \Carbon\Carbon::parse($a->created_at)->format('H:i')
-//                             : '---';
-
-//                 fputcsv($out, [$date, $eid, $name, $status, $cin, $sys]);
-//             }
-//         }
-
-//         fclose($out);
-//         flush();
-//     };
-
-//     return response()->stream($callback, 200, $headers);
-// }
-
-
-public function downloadRmAttendanceReport(Request $request)
-{
-    $month     = $request->query('month', now()->format('m'));
-    $year      = now()->year;
-    $managerId = auth()->id();
-
-    // Fetch all your report‑managers
-    $heads = Subu::where('user_role','reportmanager')
-        ->where('created_by',$managerId)
-        ->get();
-
-    // Prepare CSV response
-    $fileName = "rm_attendance_{$month}_{$year}.csv";
-    $headers  = [
-        'Content-Type'        => 'text/csv',
-        'Content-Disposition' => "attachment; filename={$fileName}",
+        '',
+        "month: {$monthName} {$year}"
     ];
+    fputcsv($out, $headerText);
 
-    $callback = function() use($heads, $month, $year) {
-        $out = fopen('php://output','w');
-        fputcsv($out, ['Date','Emp ID','Name','Status','Check-in','System Time']);
+    // ✅ Optional: Empty row for spacing
+    fputcsv($out, []);
 
-        foreach ($heads as $head) {
-            // key existing attendances by date
-            $att = $head->attendance()
-                ->whereYear('date',$year)
-                ->whereMonth('date',$month)
-                ->get()->keyBy->date;
+    // ✅ Column headers
+    fputcsv($out, ['Date', 'Employee ID', 'Name', 'Status', 'Check-in', 'System Time']);
 
-            // get approved‑leave spans
-            $leaves = Leave::where('employee_id',$head->id)
-                ->where('m_status','mapprove')
-                ->whereYear('leave_from',$year)
-                ->whereMonth('leave_from','<=',(int)$month)
-                ->whereMonth('leave_to','>=',(int)$month)
-                ->get();
+    foreach ($hrmanagers as $head) {
+        foreach ($head->filteredAttendances as $a) {
+            $date = \Carbon\Carbon::parse($a->date)->format('d/M/Y');
+            $eid  = $head->employee_id;
+            $name = $head->name;
+            $status = $a->status ?? 'Present';
+            $cin = $a->check_in_time
+                ? \Carbon\Carbon::parse($a->check_in_time)->format('h:i A')
+                : '---';
+            $sys = $a->created_at
+                ? \Carbon\Carbon::parse($a->created_at)->format('H:i')
+                : '---';
 
-            // iterate each day
-            $days = now()->setMonth((int)$month)->daysInMonth;
-            for ($d=1; $d<=$days; $d++) {
-                $date = now()->setDate($year,(int)$month,$d)->format('Y-m-d');
-                $row  = $att[$date] ?? null;
-
-                if (!$row) {
-                    // if on approved leave, show placeholder
-                    if ($leaves->first(fn($l)=> $date>=$l->leave_from && $date<=$l->leave_to)) {
-                        $row = (object)[
-                            'date'=>$date,'status'=>'On Leave',
-                            'check_in_time'=>null,'created_at'=>null
-                        ];
-                    }
-                }
-
-                if ($row) {
-                    fputcsv($out, [
-                        \Carbon\Carbon::parse($row->date)->format('d/M/Y'),
-                        $head->employee_id,
-                        $head->name,
-                        $row->status ?? 'Present',
-                        $row->check_in_time
-                            ? \Carbon\Carbon::parse($row->check_in_time)->format('h:i A')
-                            : '---',
-                        $row->created_at
-                            ? \Carbon\Carbon::parse($row->created_at)->format('H:i')
-                            : '---',
-                    ]);
-                }
-            }
+            fputcsv($out, [$date, $eid, $name, $status, $cin, $sys]);
         }
+    }
 
-        fclose($out);
-    };
+    fclose($out);
+    flush();
+};
+
+
 
     return response()->stream($callback, 200, $headers);
 }
+
+
+
+
+
+
+
+    public function approveAttendance($id)
+    {
+        $attendance = Employeeattendance::findOrFail($id);
+        $attendance->manager_approval_status = 'Present';
+        $attendance->approve_by_manager = auth()->user()->id;
+        $attendance->save();
+
+        return redirect()->back()->with('success', 'Attendance marked as Present.');
+    }
+
+    public function absentAttendance($id)
+    {
+        $attendance = Employeeattendance::findOrFail($id);
+        $attendance->manager_approval_status = 'Absent';
+        $attendance->approve_by_manager = auth()->user()->id;
+        $attendance->save();
+
+        return redirect()->back()->with('success', 'Attendance marked as Absent.');
+    }
+
+
+
+
+
 
 
 

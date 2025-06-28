@@ -54,6 +54,12 @@ class AdminController extends Controller
 
     public function AdminDashboards()
 {
+
+    $user = Auth::user();
+
+        // Get the related employee (Subu) for the logged-in user
+        // $employee = $user->subu;
+        // $employyeData = Subu::where('user_id', $user->id)->first();
     // Count total by role directly from the 'subus' table
     $totalHrHeads = Subu::where('user_role', 'head')->count();
     $totalHrManagers = Subu::where('user_role', 'manager')->count();
@@ -68,7 +74,8 @@ class AdminController extends Controller
         'totalHrManagers',
         'totalReportManagers',
         'totalUsers',
-        'totalEmployees'
+        'totalEmployees',
+        'user'
     ));
 }
 
@@ -107,6 +114,7 @@ public function ShowEmply()
     $emps = Subu::with('creator')->where('user_role', 'user')->get();
 
     return view('admin.employee_details_in_dashboard.all_employee', compact('emps'));
+    
 }
 
 
@@ -510,15 +518,7 @@ public function viewAllHrHeadsAttendances(Request $request)
                         'created_at' => null,
                     ]);
                 }
-                // else {
-                //     // Mark as Absent (no attendance, no leave)
-                //     $records->push((object)[
-                //         'date' => $date,
-                //         'status' => 'Absent',
-                //         'check_in_time' => null,
-                //         'created_at' => null,
-                //     ]);
-                // }
+
             }
         }
 
@@ -714,20 +714,23 @@ public function viewAllEmployeesAttendances(Request $request)
 }
 
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Download Attendance Reports for HR Heads, HR Managers, and Report Managers
+// //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
-
-
-
+// Download HR Head Attendance Report
 
 public function downloadHRHeadAttendanceReport(Request $request)
 {
     $type  = $request->query('type', 'monthly');
     $month = (int) $request->query('month', now()->month);
     $year  = (int) $request->query('year', now()->year);
+    $loggedInUser = auth()->user()->name ?? 'Unknown';
 
-    $fileName = "employee_attendance_report_{$type}_{$month}_{$year}.csv";
+    $monthName = \Carbon\Carbon::createFromDate($year, $month, 1)->format('F');
+    $fileName = "{$monthName}_attendance_Report_AllHrHead-{$year}.csv";
 
     $headers = [
         "Content-Type"        => "text/csv",
@@ -737,23 +740,35 @@ public function downloadHRHeadAttendanceReport(Request $request)
         "Expires"             => "0",
     ];
 
-    $callback = function () use ($month, $year) {
+    $callback = function () use ($month, $year, $monthName, $loggedInUser) {
         $handle = fopen('php://output', 'w');
 
-        // CSV Headers
+        // ✅ Custom header
+        fputcsv($handle, [
+            "Name: {$loggedInUser}",
+            '',
+            '',
+            '',
+            '',
+            '',
+            "Month: {$monthName} {$year}"
+        ]);
+
+        // ✅ Blank line
+        fputcsv($handle, []);
+
+        // ✅ Column headers
         fputcsv($handle, ['Date', 'Employee ID', 'Name', 'Status', 'Check-in', 'System Time']);
 
         $employees = Subu::where('user_role', 'head')->get();
 
         foreach ($employees as $emp) {
-            // Attendance records
             $att = $emp->attendance()
                 ->whereYear('date', $year)
                 ->whereMonth('date', $month)
                 ->get()
                 ->keyBy('date');
 
-            // Leave records
             $monthStart = now()->setDate($year, $month, 1)->startOfDay();
             $monthEnd   = now()->setDate($year, $month, 1)->endOfMonth()->endOfDay();
 
@@ -769,13 +784,11 @@ public function downloadHRHeadAttendanceReport(Request $request)
                 })
                 ->get();
 
-            // Loop through each day of the month
             $days = now()->setDate($year, $month, 1)->daysInMonth;
             for ($d = 1; $d <= $days; $d++) {
                 $date = now()->setDate($year, $month, $d)->format('Y-m-d');
                 $record = $att[$date] ?? null;
 
-                // Check if this date is within any approved leave
                 $onLeave = $leaves->first(fn($l) =>
                     $date >= \Carbon\Carbon::parse($l->leave_from)->format('Y-m-d') &&
                     $date <= \Carbon\Carbon::parse($l->leave_to)->format('Y-m-d')
@@ -817,13 +830,20 @@ public function downloadHRHeadAttendanceReport(Request $request)
 
 
 
+
+
+
+// Download HR Manager Attendance Report
+
 public function downloadHRMAttendanceReport(Request $request)
 {
     $type  = $request->query('type', 'monthly');
     $month = (int) $request->query('month', now()->month);
     $year  = (int) $request->query('year', now()->year);
+    $loggedInUser = auth()->user()->name ?? 'Unknown';
 
-    $fileName = "employee_attendance_report_{$type}_{$month}_{$year}.csv";
+    $monthName = \Carbon\Carbon::createFromDate($year, $month, 1)->format('F');
+    $fileName = "{$monthName}_attendance_Report_AllHrManager-{$year}.csv";
 
     $headers = [
         "Content-Type"        => "text/csv",
@@ -833,23 +853,35 @@ public function downloadHRMAttendanceReport(Request $request)
         "Expires"             => "0",
     ];
 
-    $callback = function () use ($month, $year) {
+    $callback = function () use ($month, $year, $monthName, $loggedInUser) {
         $handle = fopen('php://output', 'w');
 
-        // CSV Headers
+        // ✅ Custom header
+        fputcsv($handle, [
+            "Name: {$loggedInUser}",
+            '',
+            '',
+            '',
+            '',
+            '',
+            "Month: {$monthName} {$year}"
+        ]);
+
+        // ✅ Blank line
+        fputcsv($handle, []);
+
+        // ✅ Column headers
         fputcsv($handle, ['Date', 'Employee ID', 'Name', 'Status', 'Check-in', 'System Time']);
 
         $employees = Subu::where('user_role', 'manager')->get();
 
         foreach ($employees as $emp) {
-            // Attendance records
             $att = $emp->attendance()
                 ->whereYear('date', $year)
                 ->whereMonth('date', $month)
                 ->get()
                 ->keyBy('date');
 
-            // Leave records
             $monthStart = now()->setDate($year, $month, 1)->startOfDay();
             $monthEnd   = now()->setDate($year, $month, 1)->endOfMonth()->endOfDay();
 
@@ -865,13 +897,11 @@ public function downloadHRMAttendanceReport(Request $request)
                 })
                 ->get();
 
-            // Loop through each day of the month
             $days = now()->setDate($year, $month, 1)->daysInMonth;
             for ($d = 1; $d <= $days; $d++) {
                 $date = now()->setDate($year, $month, $d)->format('Y-m-d');
                 $record = $att[$date] ?? null;
 
-                // Check if this date is within any approved leave
                 $onLeave = $leaves->first(fn($l) =>
                     $date >= \Carbon\Carbon::parse($l->leave_from)->format('Y-m-d') &&
                     $date <= \Carbon\Carbon::parse($l->leave_to)->format('Y-m-d')
@@ -911,15 +941,17 @@ public function downloadHRMAttendanceReport(Request $request)
 }
 
 
-
+// Download Report Manager Attendance Report
 
 public function downloadRManagerAttendanceReport(Request $request)
 {
     $type  = $request->query('type', 'monthly');
     $month = (int) $request->query('month', now()->month);
     $year  = (int) $request->query('year', now()->year);
+    $user  = auth()->user()->name ?? 'Unknown';
 
-    $fileName = "employee_attendance_report_{$type}_{$month}_{$year}.csv";
+    $monthName = \Carbon\Carbon::createFromDate($year, $month, 1)->format('F');
+    $fileName = "{$monthName}_attendance_Report_AllReportManager-{$year}.csv";
 
     $headers = [
         "Content-Type"        => "text/csv",
@@ -929,23 +961,29 @@ public function downloadRManagerAttendanceReport(Request $request)
         "Expires"             => "0",
     ];
 
-    $callback = function () use ($month, $year) {
+    $callback = function () use ($month, $year, $monthName, $user) {
         $handle = fopen('php://output', 'w');
 
-        // CSV Headers
+        // ✅ Header Section
+        fputcsv($handle, [
+            "Name: {$user}", '', '', '', '', '', "Month: {$monthName} {$year}"
+        ]);
+
+        // ✅ Blank line
+        fputcsv($handle, []);
+
+        // ✅ Column Headers
         fputcsv($handle, ['Date', 'Employee ID', 'Name', 'Status', 'Check-in', 'System Time']);
 
         $employees = Subu::where('user_role', 'reportmanager')->get();
 
         foreach ($employees as $emp) {
-            // Attendance records
             $att = $emp->attendance()
                 ->whereYear('date', $year)
                 ->whereMonth('date', $month)
                 ->get()
                 ->keyBy('date');
 
-            // Leave records
             $monthStart = now()->setDate($year, $month, 1)->startOfDay();
             $monthEnd   = now()->setDate($year, $month, 1)->endOfMonth()->endOfDay();
 
@@ -961,13 +999,11 @@ public function downloadRManagerAttendanceReport(Request $request)
                 })
                 ->get();
 
-            // Loop through each day of the month
             $days = now()->setDate($year, $month, 1)->daysInMonth;
             for ($d = 1; $d <= $days; $d++) {
                 $date = now()->setDate($year, $month, $d)->format('Y-m-d');
                 $record = $att[$date] ?? null;
 
-                // Check if this date is within any approved leave
                 $onLeave = $leaves->first(fn($l) =>
                     $date >= \Carbon\Carbon::parse($l->leave_from)->format('Y-m-d') &&
                     $date <= \Carbon\Carbon::parse($l->leave_to)->format('Y-m-d')
@@ -1007,14 +1043,17 @@ public function downloadRManagerAttendanceReport(Request $request)
 }
 
 
+// Download Employee  Attendance Report
 
 public function downloadEMPloyeeAttendanceReport(Request $request)
 {
     $type  = $request->query('type', 'monthly');
     $month = (int) $request->query('month', now()->month);
     $year  = (int) $request->query('year', now()->year);
+    $user  = auth()->user()->name ?? 'Unknown';
 
-    $fileName = "employee_attendance_report_{$type}_{$month}_{$year}.csv";
+    $monthName = \Carbon\Carbon::createFromDate($year, $month, 1)->format('F');
+    $fileName = "{$monthName}_attendance_Report_AllEmployee-{$year}.csv";
 
     $headers = [
         "Content-Type"        => "text/csv",
@@ -1024,23 +1063,29 @@ public function downloadEMPloyeeAttendanceReport(Request $request)
         "Expires"             => "0",
     ];
 
-    $callback = function () use ($month, $year) {
+    $callback = function () use ($month, $year, $monthName, $user) {
         $handle = fopen('php://output', 'w');
 
-        // CSV Headers
+        // ✅ Top information row
+        fputcsv($handle, [
+            "Name: {$user}", '', '', '', '', '', "Month: {$monthName} {$year}"
+        ]);
+
+        // ✅ Blank line
+        fputcsv($handle, []);
+
+        // ✅ CSV column headers
         fputcsv($handle, ['Date', 'Employee ID', 'Name', 'Status', 'Check-in', 'System Time']);
 
         $employees = Subu::where('user_role', 'user')->get();
 
         foreach ($employees as $emp) {
-            // Attendance records
             $att = $emp->attendance()
                 ->whereYear('date', $year)
                 ->whereMonth('date', $month)
                 ->get()
                 ->keyBy('date');
 
-            // Leave records
             $monthStart = now()->setDate($year, $month, 1)->startOfDay();
             $monthEnd   = now()->setDate($year, $month, 1)->endOfMonth()->endOfDay();
 
@@ -1056,13 +1101,12 @@ public function downloadEMPloyeeAttendanceReport(Request $request)
                 })
                 ->get();
 
-            // Loop through each day of the month
             $days = now()->setDate($year, $month, 1)->daysInMonth;
+
             for ($d = 1; $d <= $days; $d++) {
                 $date = now()->setDate($year, $month, $d)->format('Y-m-d');
                 $record = $att[$date] ?? null;
 
-                // Check if this date is within any approved leave
                 $onLeave = $leaves->first(fn($l) =>
                     $date >= \Carbon\Carbon::parse($l->leave_from)->format('Y-m-d') &&
                     $date <= \Carbon\Carbon::parse($l->leave_to)->format('Y-m-d')

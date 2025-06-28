@@ -50,6 +50,16 @@ class RmController extends Controller
 
     $teamMembers = \App\Models\Subu::where('assigned_to', $employee->id)->get();
 
+
+       // Get today’s attendance for the logged-in Reportmanager
+            $today = Carbon::today()->toDateString();
+            $attendances = Employeeattendance::where('employee_id', $employee->id)
+                            ->whereDate('date', $today)
+                            ->first();
+
+
+
+
     $todayAttendanceData = \App\Models\Subu::with(['attendances' => function ($query) {
         $query->whereDate('date', now()->toDateString())
               ->where('status', 'present');
@@ -71,7 +81,7 @@ class RmController extends Controller
 
 // dd($presentCount);
     // Return the data to the view
-    return view('report_manager.my_dashboard', compact('employee', 'pendingLeaveCount', 'attendance', 'teamMembers', 'todayAttendanceData', 'leaveBalanceData', 'presentCount'));
+    return view('report_manager.my_dashboard', compact('employee','attendances', 'pendingLeaveCount', 'attendance', 'teamMembers', 'todayAttendanceData', 'leaveBalanceData', 'presentCount'));
 }
 
 
@@ -715,45 +725,6 @@ public function rejectLeaveSubmitbyRm(Request $request)
 ////////////////////////////////////////////////////attendance status approval by reporting manager////////////////////////////////////////////////////
 
 
-// public function viewEmployeeAttendancesStatuses(Request $request)
-// {
-//     $month = $request->input('month');
-//     $currentYear = now()->year;
-
-//     $loggedInUserId = auth()->id();
-
-//     // Get the Subu record for the logged-in report manager (based on user_id)
-//     $reportManager = Subu::where('user_id', $loggedInUserId)
-//                          ->where('user_role', 'reportmanager')
-//                          ->first();
-
-//     if (!$reportManager) {
-//         return back()->with('error', 'Report Manager not found.');
-//     }
-
-//     // Now fetch employees assigned to this report manager
-//     $rmanagers = Subu::where('user_role', 'user')
-//                      ->where('assigned_to', $reportManager->id)
-//                      ->get();
-
-//     // Load filtered attendances for each employee
-//     foreach ($rmanagers as $manager) {
-//         $attendanceQuery = $manager->attendance();
-
-//         if ($month) {
-//             $attendanceQuery->whereMonth('date', $month)
-//                             ->whereYear('date', $currentYear);
-//         } else {
-//             $attendanceQuery->whereYear('date', $currentYear);
-//         }
-
-//         // Attach attendance records to the user model
-//         $manager->filteredAttendances = $attendanceQuery->orderBy('date')->get();
-//     }
-
-//     return view('report_manager.employee_management.attendance_status.employee_attendance_status', compact('rmanagers', 'month'));
-// }
-
 
 
 public function viewEmployeeAttendancesStatuses(Request $request)
@@ -832,84 +803,91 @@ public function viewEmployeeAttendancesStatuses(Request $request)
 
 public function downloadEmployeeAttendanceReports(Request $request)
 {
-    $month        = (int)$request->query('month', now()->month);
-    $year         = now()->year;
+    $month    = (int) $request->query('month', now()->month);
+    $year     = now()->year;
+    $user     = auth()->user()->name ?? 'Unknown';
+    $rmSubu   = Subu::where('user_id', auth()->id())
+                    ->where('user_role', 'reportmanager')
+                    ->firstOrFail();
 
-    // 1) Find *your* Subu record for this RM:
-    $rmSubu = Subu::where('user_id', auth()->id())
-                  ->where('user_role','reportmanager')
-                  ->firstOrFail();
+    $employees = Subu::where('user_role', 'user')
+                     ->where('assigned_to', $rmSubu->id)
+                     ->get();
 
-    // 2) Fetch employees assigned to *that* Subu ID:
-    $employees = Subu::where('user_role','user')
-        ->where('assigned_to', $rmSubu->id)
-        ->get();
+    $monthStart = Carbon::create($year, $month, 1)->startOfMonth();
+    $monthEnd   = $monthStart->copy()->endOfMonth();
+    $daysInMonth = $monthEnd->day;
 
-    // 3) Build filteredAttendances exactly as before...
     foreach ($employees as $emp) {
-        $attByDate = $emp->attendance()
-                         ->whereYear('date',$year)
-                         ->whereMonth('date',$month)
-                         ->get()
-                         ->keyBy('date');
+        $attendance = $emp->attendance()
+                          ->whereYear('date', $year)
+                          ->whereMonth('date', $month)
+                          ->get()
+                          ->keyBy('date');
 
-        $leaves = Leave::where('employee_id',$emp->id)
-                       ->where('m_status','mapprove')
-                       ->where('rm_status','rmapprove')
-                       ->whereYear('leave_from','<=',$year)
-                       ->whereYear('leave_to','>=',$year)
-                       ->whereMonth('leave_from','<=',$month)
-                       ->whereMonth('leave_to','>=',$month)
+        $leaves = Leave::where('employee_id', $emp->id)
+                       ->where('m_status', 'mapprove')
+                       ->where('rm_status', 'rmapprove')
+                       ->where(function ($q) use ($monthStart, $monthEnd) {
+                            $q->whereBetween('leave_from', [$monthStart, $monthEnd])
+                              ->orWhereBetween('leave_to', [$monthStart, $monthEnd])
+                              ->orWhere(function ($q2) use ($monthStart, $monthEnd) {
+                                  $q2->where('leave_from', '<=', $monthStart)
+                                     ->where('leave_to', '>=', $monthEnd);
+                              });
+                       })
                        ->get();
 
-        $rows = collect();
-        $days = now()->setMonth($month)->daysInMonth;
-        for ($d = 1; $d <= $days; $d++) {
-            $date = now()->setDate($year,$month,$d)->format('Y-m-d');
-            $rec  = $attByDate[$date] ?? null;
+        $emp->filteredAttendances = collect();
 
-            if (! $rec && $leaves->first(fn($l)=> $date >= $l->leave_from && $date <= $l->leave_to)) {
+        for ($d = 1; $d <= $daysInMonth; $d++) {
+            $date = Carbon::create($year, $month, $d)->format('Y-m-d');
+            $rec  = $attendance[$date] ?? null;
+
+            if (!$rec && $leaves->first(fn($l) => $date >= $l->leave_from && $date <= $l->leave_to)) {
                 $rec = (object)[
-                    'date'=>$date,'status'=>'On Leave',
-                    'check_in_time'=>null,'created_at'=>null
+                    'date' => $date, 'status' => 'On Leave',
+                    'check_in_time' => null, 'created_at' => null
                 ];
             }
-            if ($rec) $rows->push($rec);
-        }
 
-        $emp->filteredAttendances = $rows;
+            if ($rec) $emp->filteredAttendances->push($rec);
+        }
     }
 
-    // 4) Clear buffers
     while (ob_get_level()) ob_end_clean();
 
-    // 5) Stream CSV
-    $fileName = "attendance_{$month}_{$year}.csv";
-    return response()->stream(function() use($employees) {
-        $out = fopen('php://output','w');
-        fputcsv($out,['Date','Employee ID','Name','Status','Check-in','System Time']);
-        foreach($employees as $e){
-            foreach($e->filteredAttendances as $a){
-                fputcsv($out,[
+    $fileName = "{$monthStart->format('F')}_Attendance_Report_By_RM-{$year}.csv";
+
+    return response()->stream(function () use ($employees, $monthStart, $year, $user) {
+        $out = fopen('php://output', 'w');
+
+        fputcsv($out, ["Reporting Manager: {$user}", '', '','', '', "Month: {$monthStart->format('F')} {$year}"]);
+        fputcsv($out, []);
+        fputcsv($out, ['Date', 'Employee ID', 'Name', 'Status', 'Check-in', 'System Time']);
+
+        foreach ($employees as $emp) {
+            foreach ($emp->filteredAttendances as $a) {
+                fputcsv($out, [
                     Carbon::parse($a->date)->format('d/M/Y'),
-                    $e->employee_id,
-                    $e->name,
-                    $a->status?:'Present',
-                    $a->check_in_time
-                      ? Carbon::parse($a->check_in_time)->format('h:i A')
-                      : '---',
-                    $a->created_at
-                      ? Carbon::parse($a->created_at)->format('H:i')
-                      : '---',
+                    $emp->employee_id,
+                    $emp->name,
+                    $a->status ?? 'Present',
+                    $a->check_in_time ? Carbon::parse($a->check_in_time)->format('h:i A') : '---',
+                    $a->created_at    ? Carbon::parse($a->created_at)->format('H:i') : '---',
                 ]);
             }
         }
+
         fclose($out);
+        flush();
     }, 200, [
-        'Content-Type'=>'text/csv',
-        'Content-Disposition'=>"attachment; filename={$fileName}",
+        'Content-Type'        => 'text/csv',
+        'Content-Disposition' => "attachment; filename={$fileName}",
     ]);
 }
+
+
 
 
 
